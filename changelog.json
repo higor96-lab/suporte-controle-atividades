@@ -1,0 +1,48 @@
+[
+  {"versao": "3.3.0", "data": "2026-11-13", "titulo": "Gráficos interativos e telas novas",
+   "itens": [
+     "Gráficos com indicadores e comparação com o período anterior, valores ao passar o mouse e clique para ver as atividades.",
+     "Linha da meta, novos gráficos (quem mais demanda e precisão das estimativas), exportar PNG e modo apresentação.",
+     "Menu por seções com abas, Ctrl+K para buscar qualquer coisa e menu da conta.",
+     "Formulário da atividade em painel lateral, edição em lote e linha do tempo do dia com horários livres.",
+     "Painel da equipe com semáforo e atalho para as atividades da pessoa; carregamento com esqueleto.",
+     "Configuração local em config.bat (o iniciar.bat ficou genérico); administrador inicial passa a ser 'admin'."
+   ]},
+  {"versao": "3.2.0", "data": "2026-11-13", "titulo": "Correções de segurança e backups completos",
+   "itens": [
+     "Trocar ou redefinir a senha (e resetar o 2FA) encerra as sessões que estavam abertas com a senha antiga.",
+     "Desbloqueio de conta, reset de 2FA e encerramento de sessão pelo administrador agora aparecem no Histórico.",
+     "Removida a forma antiga de salvar que podia sobrescrever o trabalho feito em outro computador.",
+     "O backup passa a incluir os anexos, e restaurar um backup traz os anexos de volta.",
+     "Cada atualização guarda os arquivos da versão anterior; em Sobre e atualização dá para voltar com um clique.",
+     "Senhas com no mínimo 8 caracteres, recusando senhas óbvias, o nome de usuário e a senha inicial publicada.",
+     "Proteção extra da página (Content-Security-Policy): só os scripts do próprio sistema podem rodar.",
+     "Corrigida a tela que ficava piscando sem parar quando a sessão expirava em Relatórios, Gráficos ou Histórico de alterações."
+   ]},
+  {"versao": "3.1.0", "data": "2026-11-13", "titulo": "Anexos, prazos, foco e segurança",
+   "itens": [
+     "Anexos nas atividades: prints (inclusive colando com Ctrl+V), PDFs e planilhas.",
+     "Prazo (SLA) com aviso de atrasadas, filtro e indicador de cumprimento nos gráficos e relatórios.",
+     "Visão Foco: uma atividade por vez, com cronômetro grande e subtarefas.",
+     "Gráficos novos: previsto × realizado, prazos, semana a semana e mapa de calor por dia e hora.",
+     "Verificação em duas etapas (aplicativo autenticador) com códigos de recuperação.",
+     "Bloqueio da conta após 5 tentativas erradas, com aviso ao administrador e desbloqueio.",
+     "Sessões abertas: ver onde a conta está conectada e encerrar.",
+     "Tela Sobre e atualização: confere a versão, mostra o que mudou e aplica o pacote novo."
+   ]},
+  {"versao": "3.0.0", "data": "2026-11-13", "titulo": "Calendário, quadro e produtividade",
+   "itens": [
+     "Calendário semanal e mensal com arrastar para reagendar; quadro kanban.",
+     "Subtarefas, etiquetas, fixar, cronômetro, desfazer e lembretes.",
+     "Aparência (cor, fonte, densidade), boas-vindas, tutorial e gestos no celular.",
+     "Registro de acessos, Saúde do sistema e proteção contra edição simultânea."
+   ]},
+  {"versao": "2.0.0", "data": "2026-11-12", "titulo": "Visual MV, celular e importação",
+   "itens": [
+     "Novo visual no estilo MV, uso pelo celular (instalável), busca geral e importação de Excel."
+   ]},
+  {"versao": "1.0.0", "data": "2026-11-01", "titulo": "Primeira versão",
+   "itens": [
+     "Login, atividades por usuário, relatórios, backups, perfis, gráficos, metas e histórico."
+   ]}
+]

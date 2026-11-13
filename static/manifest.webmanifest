@@ -1,0 +1,21 @@
+{
+  "name": "Suporte — Controle de atividades",
+  "short_name": "Suporte",
+  "description": "Controle de atividades da equipe de suporte.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef3f8",
+  "theme_color": "#4a7096",
+  "lang": "pt-BR",
+  "icons": [
+    {"src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/static/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Nova atividade", "url": "/#nova"},
+    {"name": "Buscar", "url": "/#busca"}
+  ]
+}

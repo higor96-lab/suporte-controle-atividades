@@ -1,0 +1,12 @@
+data.db
+data.db-*
+secret.key
+.venv/
+__pycache__/
+*.pyc
+backups/
+certs/
+anexos/
+config.bat
+atualizacoes/
+versoes_anteriores/
