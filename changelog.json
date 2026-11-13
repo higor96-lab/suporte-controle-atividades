@@ -6,7 +6,8 @@
      "Menu por seções com abas, Ctrl+K para buscar qualquer coisa e menu da conta.",
      "Formulário da atividade em painel lateral, edição em lote e linha do tempo do dia com horários livres.",
      "Painel da equipe com semáforo e atalho para as atividades da pessoa; carregamento com esqueleto.",
-     "Configuração local em config.bat (o iniciar.bat ficou genérico); administrador inicial passa a ser 'admin'."
+     "Configuração local em config.bat (o iniciar.bat ficou genérico); administrador inicial passa a ser 'admin'.",
+     "Hospedagem: modo demonstração (DEMO=1) com dados fictícios recriados a cada 24 h, wsgi.py e guia HOSPEDAGEM.md."
    ]},
   {"versao": "3.2.0", "data": "2026-11-13", "titulo": "Correções de segurança e backups completos",
    "itens": [

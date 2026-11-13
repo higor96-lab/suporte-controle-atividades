@@ -44,6 +44,10 @@ HOST = os.environ.get("HOST", "0.0.0.0")
 PORT = int(os.environ.get("PORT", "5000"))
 
 CSP_ATIVO = os.environ.get("CSP", "1").lower() not in ("0", "false", "nao", "no")
+# Hospedagem publica (ver HOSPEDAGEM.md): DEMO=1 liga a demonstracao com dados ficticios;
+# PROXY=1 quando o sistema roda atras de um proxy HTTPS (PythonAnywhere, Cloudflare Tunnel...).
+DEMO = os.environ.get("DEMO", "0").lower() in ("1", "true", "sim", "yes")
+PROXY = os.environ.get("PROXY", "0").lower() in ("1", "true", "sim", "yes")
 
 # Usuario administrador criado na primeira execucao. A senha inicial e sorteada e mostrada no console
 # (o sistema obriga a troca no primeiro acesso). Esqueceu? python manage.py senha admin
@@ -214,6 +218,49 @@ app.config.update(
     MAX_CONTENT_LENGTH=30 * 1024 * 1024,
     SEND_FILE_MAX_AGE_DEFAULT=0,
 )
+if PROXY:
+    # o proxy informa o IP real do visitante e que a conexao e HTTPS
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    app.config["SESSION_COOKIE_SECURE"] = True
+
+# ---- modo demonstracao: o que um visitante NAO pode fazer
+DEMO_BLOQUEIOS = [  # (metodos, prefixo do caminho)
+    (("POST", "PUT", "DELETE"), "/api/usuarios"),       # criar/editar/excluir usuarios, senhas, 2FA de outros
+    (("POST",), "/api/senha"), (("POST",), "/api/2fa/"),   # trocar a senha ou ligar 2FA trancaria os outros visitantes
+    (("POST", "GET"), "/api/backup"),                     # backups: criar, listar, baixar, restaurar
+    (("POST", "GET"), "/api/atualizar/"), (("GET",), "/api/versao"),  # enviar codigo novo ao servidor
+    (("POST",), "/api/atividades/"),                      # anexos (arquivos de terceiros no servidor)
+    (("GET",), "/api/acessos"), (("GET",), "/api/saude"), (("GET",), "/api/seguranca"),
+    (("GET", "POST", "DELETE"), "/api/sessoes"),          # a conta e compartilhada: mostraria o IP de outros visitantes
+]
+_demo_ultima = [0.0]
+
+
+@app.before_request
+def modo_demo():
+    if not DEMO:
+        return
+    agora = time.time()
+    if agora - _demo_ultima[0] > 300:  # confere a cada 5 min se ja e hora de recriar os dados
+        _demo_ultima[0] = agora
+        try:
+            import demo
+            demo.garantir(DB_PATH, BASE)
+        except Exception as e:  # nunca derruba a pagina por causa da recriacao
+            print("  Falha ao recriar a demonstracao:", e)
+    for metodos, prefixo in DEMO_BLOQUEIOS:
+        if request.method in metodos and request.path.startswith(prefixo):
+            return jsonify(erro="Desativado na demonstração (os dados são fictícios e compartilhados por todos os visitantes)."), 403
+
+
+@app.get("/api/demo")
+def info_demo():
+    """A tela de login usa isto para mostrar o aviso e preencher o acesso de visitante."""
+    if not DEMO:
+        return jsonify(demo=False)
+    import demo
+    return jsonify(demo=True, usuario=demo.USUARIO, senha=demo.SENHA, horas=demo.HORAS)
 
 
 def get_db():
@@ -395,9 +442,10 @@ def me():
         return jsonify(erro="auth"), 401
     j = usuario_json(r)
     ac = get_db().execute("SELECT quando, ip, agente FROM acessos WHERE user_id=? AND ok=1 ORDER BY id DESC LIMIT 2", (uid,)).fetchall()
-    if len(ac) == 2:
+    if len(ac) == 2 and not DEMO:  # na demonstracao o "acesso anterior" seria de outro visitante
         j["ultimo_acesso"] = {"quando": ac[1]["quando"], "ip": ac[1]["ip"], "agente": ac[1]["agente"]}
     j["exigir_2fa"] = EXIGIR_2FA_ADMIN
+    j["demo"] = DEMO
     if r["admin"]:
         j["avisos"] = get_db().execute("SELECT COUNT(*) FROM avisos WHERE lido=0").fetchone()[0]
     return jsonify(j)
@@ -460,7 +508,8 @@ def login():
         qtd += 1
         FALHAS[ip] = [qtd, time.time() + 60 if qtd >= 5 else 0]
         registra_acesso(db, r["id"] if r else None, nome, False)
-        if r and seguranca.registra_falha(db, r, ip):
+        # na demonstracao a conta e de todos: errar a senha de proposito nao pode trancar os outros visitantes
+        if r and not DEMO and seguranca.registra_falha(db, r, ip):
             return jsonify(erro=msg_bloqueio(seguranca.BLOQ_MIN * 60)), 423
         return jsonify(erro="Usuário ou senha inválidos."), 401
     FALHAS.pop(ip, None)

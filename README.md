@@ -12,6 +12,8 @@ Sistema local (Flask + SQLite) com login, atividades por usuário, relatórios e
 
 **Primeiro acesso (banco novo):** usuário `admin`. A senha provisória é sorteada e aparece **na janela do `iniciar.bat`** na primeira execução. Anote-a: o sistema pede a troca logo no primeiro login. Se perder, rode `python manage.py senha admin`. Depois, crie os usuários da equipe em *Administração > Usuários* e, se quiser, troque o nome do administrador por ali. A senha é alterada no menu da conta (círculo com as iniciais, no canto superior direito).
 
+**Hospedar na internet** (demonstração pública ou acesso da equipe de fora da rede): veja [HOSPEDAGEM.md](HOSPEDAGEM.md).
+
 ## HTTPS (conexão segura)
 
 O sistema gera sozinho um certificado próprio na pasta `certs/` (renovado automaticamente quando o IP muda ou perto de vencer). Como ele não é de uma autoridade pública, o navegador mostra "Não seguro" até você **instalar o certificado** como confiável:
@@ -172,6 +174,7 @@ Rode `python meuip.py` para ver os IPs da máquina. Se o IP configurado não exi
 | `static/css/` | Estilos (`app.css` base, `graficos.css`, `telas.css`) |
 | `static/js/` | Comportamento (`app.js` principal, `graficos.js`, `telas.js`, `shell.js`, `login.js`, `icons.js`) |
 | `config.exemplo.bat` | Modelo de configuração local (copie para `config.bat`) |
+| `wsgi.py`, `demo.py` | Hospedagem (WSGI) e modo demonstração — ver `HOSPEDAGEM.md` |
 | `static/qrcode.js` | Gerador de QR code do 2FA (funciona sem internet) |
 | `static/manifest.webmanifest`, `static/sw.js`, `static/icons/` | Instalação como app no celular |
 | `data.db` | Banco SQLite (criado sozinho) |

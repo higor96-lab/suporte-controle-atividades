@@ -18,4 +18,15 @@
     .catch(function(){m.textContent="Não foi possível conectar ao servidor."}).then(function(){b.disabled=false});
   });
   $("logout").addEventListener("click",function(){fetch("/api/logout",{method:"POST",headers:H,credentials:"same-origin"}).then(function(){location.reload()})});
+  // ---- modo demonstracao (servidor com DEMO=1)
+  function aviso(h){var d=document.createElement("div");d.className="demob";d.setAttribute("role","note");d.innerHTML=h;return d}
+  if(!ME){fetch("/api/demo",{credentials:"same-origin"}).then(function(r){return r.json()}).then(function(d){if(!d.demo)return;
+    $("lf").insertBefore(aviso('<b>Demonstração</b> com dados fictícios, recriados a cada '+Math.round(d.horas)+' h. Entre como <code>'+d.usuario+'</code> / <code>'+d.senha+'</code> (já preenchido).'),$("l1"));
+    $("lu").value=d.usuario;$("lp").value=d.senha;$("lb").focus()}).catch(function(){})}
+  else if(ME.demo){
+    document.body.classList.add("demo");
+    var c=document.querySelector(".ct");if(c)c.insertBefore(aviso('<b>Demonstração:</b> dados fictícios, compartilhados por todos os visitantes e recriados todo dia. Fique à vontade para criar, editar e concluir atividades. Administração, senhas, anexos e backups ficam desligados aqui.'),c.firstChild);
+    ["segBtn","cfg"].forEach(function(i){var e=$(i);if(e)e.disabled=true});
+    document.querySelectorAll('[data-um="seg"],[data-um="senha"]').forEach(function(b){b.hidden=true});
+    var an=$("anAdd");if(an){an.disabled=true;an.title="Anexos ficam desligados na demonstração"}}
 })();

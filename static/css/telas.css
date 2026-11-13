@@ -115,6 +115,14 @@ li.row.sel .chk{background:var(--accent);border-color:var(--accent);color:#fff}
 :root[data-theme="dark"] .sfc.sf-good{color:#6fdc6f}:root[data-theme="dark"] .sfc.sf-warn{color:#fac85a}:root[data-theme="dark"] .sfc.sf-crit{color:#f08278}
 .pc.sf-crit{box-shadow:inset 4px 0 0 #d03b3b,var(--shadow)}.pc.sf-warn{box-shadow:inset 4px 0 0 #fab219,var(--shadow)}.pc.sf-good{box-shadow:inset 4px 0 0 #0ca30c,var(--shadow)}
 .pca{margin-top:12px;display:flex;justify-content:flex-end}
+/* ---- modo demonstracao */
+.demob{background:color-mix(in srgb,#fab219 16%,var(--surface));border:1px solid color-mix(in srgb,#fab219 55%,transparent);color:var(--ink);
+  border-radius:10px;padding:10px 14px;font-size:13.5px;line-height:1.45}
+.demob code{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:12.5px}
+#lf .demob{margin:16px 28px 0}
+.ct>.demob{margin:12px 36px 0;border-radius:10px}
+.umenu button[hidden]{display:none}
+@media (max-width:860px){.ct>.demob{margin:10px 12px 0}}
 /* ---- esqueletos */
 .skw{padding:18px 20px}
 @media (max-width:860px){

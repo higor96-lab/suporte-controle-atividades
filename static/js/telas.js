@@ -51,8 +51,9 @@ function comandos(){
   c.push({t:"Nova atividade",s:"Ação",ic:"＋",kw:"criar adicionar nova",run:function(){S.openDlg(null)}});
   c.push({t:"Alternar modo claro/escuro",s:"Ação",ic:"◐",kw:"tema escuro claro dark",run:S.toggleTheme});
   c.push({t:"Aparência e preferências",s:"Conta",ic:"✎",kw:"cor fonte densidade lembretes",run:function(){$("apBtn").click()}});
-  c.push({t:"Segurança da conta",s:"Conta",ic:"🔒",kw:"2fa duas etapas sessoes",run:function(){$("segBtn").click()}});
-  c.push({t:"Alterar senha",s:"Conta",ic:"🔑",kw:"senha trocar",run:function(){$("cfg").click()}});
+  if(!ME.demo){
+    c.push({t:"Segurança da conta",s:"Conta",ic:"🔒",kw:"2fa duas etapas sessoes",run:function(){$("segBtn").click()}});
+    c.push({t:"Alterar senha",s:"Conta",ic:"🔑",kw:"senha trocar",run:function(){$("cfg").click()}})}
   c.push({t:"Exportar atividades (CSV)",s:"Ação",ic:"⤓",kw:"exportar csv planilha baixar",run:function(){$("exp").click()}});
   c.push({t:"Ver atrasadas",s:"Atividades",ic:"!",kw:"atrasadas vencidas prazo",run:function(){$("lkLate").click();location.hash="#atividades"}});
   c.push({t:"Atalhos de teclado",s:"Ajuda",ic:"?",kw:"teclado atalhos ajuda",run:function(){$("kdlg").showModal()}});
