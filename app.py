@@ -48,6 +48,7 @@ CSP_ATIVO = os.environ.get("CSP", "1").lower() not in ("0", "false", "nao", "no"
 # PROXY=1 quando o sistema roda atras de um proxy HTTPS (PythonAnywhere, Cloudflare Tunnel...).
 DEMO = os.environ.get("DEMO", "0").lower() in ("1", "true", "sim", "yes")
 PROXY = os.environ.get("PROXY", "0").lower() in ("1", "true", "sim", "yes")
+SQLITE_WAL = os.environ.get("SQLITE_WAL", "1").lower() not in ("0", "false", "nao", "no")
 
 # Usuario administrador criado na primeira execucao. A senha inicial e sorteada e mostrada no console
 # (o sistema obriga a troca no primeiro acesso). Esqueceu? python manage.py senha admin
@@ -164,7 +165,8 @@ def connect():
     con = sqlite3.connect(DB_PATH, timeout=10)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys=ON")
-    con.execute("PRAGMA journal_mode=WAL")
+    # WAL e mais rapido no disco local; em disco de rede (hospedagem) use SQLITE_WAL=0
+    con.execute("PRAGMA journal_mode=%s" % ("WAL" if SQLITE_WAL else "DELETE"))
     return con
 
 

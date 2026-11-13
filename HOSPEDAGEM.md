@@ -33,6 +33,7 @@ Tentar senhas erradas não tranca a conta compartilhada, e os dados voltam ao or
    import os, sys
    os.environ["DEMO"] = "1"    # demonstracao com dados ficticios
    os.environ["PROXY"] = "1"   # o PythonAnywhere fica na frente com HTTPS
+   os.environ["SQLITE_WAL"] = "0"  # disco de rede: modo de diario simples do SQLite
    sys.path.insert(0, "/home/SEU-USUARIO/suporte-controle-atividades")
    from wsgi import application
    ```
