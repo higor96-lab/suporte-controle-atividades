@@ -2,6 +2,8 @@
 (function(){
   var $=function(i){return document.getElementById(i)},ME=window.ME;
   var H={"Content-Type":"application/json","X-Requested-With":"fetch"};
+  // versao na tela: se o servidor ainda nao foi reiniciado depois da atualizacao, nao mostra o marcador cru
+  Array.prototype.forEach.call(document.querySelectorAll(".verh,.lver"),function(e){if(/__VERSAO__/.test(e.textContent))e.hidden=true});
   if(ME){document.body.classList.remove("locked");$("who").textContent=ME.nome+(ME.cargo?" · "+ME.cargo:"");if(ME.admin)$("gAdm").hidden=false;if(ME.equipe)$("gEq").hidden=false;else{$("rUsr").parentNode.hidden=true;$("gEscW").hidden=true;$("hUsW").hidden=true}}else $("lu").focus();
   var step2=false;
   function l1(show){$("l1").hidden=!show;$("lu").required=show;$("lp").required=show;$("l2").hidden=show;$("lc").required=!show}
