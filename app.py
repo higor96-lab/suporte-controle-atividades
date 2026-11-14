@@ -23,6 +23,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import anexos
 import atualizar
+import extras
 import gestao
 import importar
 import prazos
@@ -35,6 +36,8 @@ DB_PATH = os.path.join(BASE, "data.db")
 KEY_PATH = os.path.join(BASE, "secret.key")
 BACKUP_DIR = os.environ.get("BACKUP_DIR", os.path.join(BASE, "backups"))
 BACKUP_KEEP = int(os.environ.get("BACKUP_KEEP", "30"))  # quantos backups manter
+BACKUP_COPIA = os.environ.get("BACKUP_COPIA", "").strip()  # segunda pasta (ex.: drive da rede) que recebe uma copia
+COPIA_STATUS = {"ok": None, "quando": "", "erro": ""}
 CERT_DIR = os.path.join(BASE, "certs")
 ANEXOS_DIR = os.environ.get("ANEXOS_DIR", os.path.join(BASE, "anexos"))
 EXIGIR_2FA_ADMIN = os.environ.get("EXIGIR_2FA_ADMIN", "0").lower() in ("1", "true", "sim", "yes")
@@ -60,6 +63,34 @@ ATIVOS = {}  # user_id -> ultimo uso (para "online agora")
 CATS = {"TRE", "IMP", "SUP", "REU", "DEV", "DOC"}
 HASH_METODO = "pbkdf2:sha256"
 PERFIL_NOME = {"usuario": "Usuário", "supervisor": "Supervisor", "admin": "Administrador"}
+
+
+# Permissoes finas. Vazio no banco = padrao do perfil. Administrador tem todas.
+PERMS = {"ver_equipe": "Ver o painel e os relatórios da equipe", "editar_metas": "Definir as metas",
+         "exportar": "Exportar relatórios (Excel, PDF e CSV)", "ver_alteracoes": "Ver as alterações feitas pela equipe",
+         "tv": "Abrir o painel para TV"}
+PERMS_PADRAO = {"usuario": ["exportar"], "supervisor": list(PERMS), "admin": list(PERMS)}
+
+
+def perms_de(r):
+    if r["perfil"] == "admin":
+        return list(PERMS)
+    try:
+        cust = json.loads(r["permissoes"]) if r["permissoes"] else None
+    except ValueError:
+        cust = None
+    if isinstance(cust, list):
+        return [p for p in PERMS if p in cust]
+    return list(PERMS_PADRAO.get(r["perfil"], ["exportar"]))
+
+
+def limpa_perms(v):
+    """None = usar o padrao do perfil; lista = personalizada."""
+    if v is None or v == "padrao":
+        return ""
+    if not isinstance(v, list):
+        raise ValueError("Permissões inválidas.")
+    return json.dumps([p for p in PERMS if p in v])
 
 
 def perfil_param(d):
@@ -188,6 +219,9 @@ def init_db():
                        ("totp_recup", "TEXT NOT NULL DEFAULT '[]'"), ("totp_ultimo", "INTEGER NOT NULL DEFAULT 0")):
         if nome not in ucols:
             con.execute("ALTER TABLE usuarios ADD COLUMN %s %s" % (nome, defn))
+    if "permissoes" not in ucols:
+        con.execute("ALTER TABLE usuarios ADD COLUMN permissoes TEXT NOT NULL DEFAULT ''")
+    extras.init_db(con)
     cols = [r["name"] for r in con.execute("PRAGMA table_info(atividades)")]
     for nome, defn in (("prazo", "TEXT NOT NULL DEFAULT ''"), ("fim", "INTEGER NOT NULL DEFAULT 0"),
                        ("deleg_de", "TEXT NOT NULL DEFAULT ''"), ("deleg_em", "TEXT NOT NULL DEFAULT ''"),
@@ -299,9 +333,46 @@ def equipe_required(fn):
     return wrap
 
 
+def tem_perm(p):
+    if not session.get("uid"):
+        return False
+    if "_perms" not in g:
+        r = get_db().execute("SELECT perfil, permissoes FROM usuarios WHERE id=?", (session["uid"],)).fetchone()
+        g._perms = perms_de(r) if r else []
+    return p in g._perms
+
+
 def pode_equipe():
-    r = get_db().execute("SELECT perfil FROM usuarios WHERE id=?", (session.get("uid"),)).fetchone()
-    return bool(r) and r["perfil"] in ("supervisor", "admin")
+    return tem_perm("ver_equipe")
+
+
+def perm_required(p):
+    def deco(fn):
+        @wraps(fn)
+        @login_required
+        def wrap(*a, **kw):
+            if not tem_perm(p):
+                return jsonify(erro="Seu perfil não tem permissão para isso. Fale com o administrador."), 403
+            return fn(*a, **kw)
+        return wrap
+    return deco
+
+
+PERM_ROTAS = [  # (metodo, prefixo, permissao) conferidos antes das rotas dos outros modulos
+    ("PUT", "/api/metas", "editar_metas"),
+    ("GET", "/api/relatorios/excel", "exportar"), ("GET", "/api/relatorios/pdf", "exportar"),
+    ("GET", "/api/graficos/excel", "exportar"),
+]
+
+
+@app.before_request
+def confere_perm_rotas():
+    if not session.get("uid"):
+        return None
+    for m, pref, p in PERM_ROTAS:
+        if request.method == m and request.path.startswith(pref) and not tem_perm(p):
+            return jsonify(erro="Seu perfil não tem permissão para isso. Fale com o administrador."), 403
+    return None
 
 
 def ator():
@@ -430,7 +501,8 @@ FALHAS = {}  # ip -> [tentativas, bloqueado_ate]
 
 def usuario_json(r):
     return {"id": r["id"], "usuario": r["usuario"], "nome": r["nome"], "cargo": r["cargo"], "admin": bool(r["admin"]),
-            "perfil": r["perfil"], "equipe": r["perfil"] in ("supervisor", "admin"), "sessao_min": SESSAO_MIN,
+            "perfil": r["perfil"], "equipe": "ver_equipe" in perms_de(r), "perms": perms_de(r),
+            "perms_padrao": not r["permissoes"], "sessao_min": SESSAO_MIN,
             "trocar": bool(r["trocar_senha"]), "totp": bool(r["totp_ativo"]),
             "bloqueada": int(r["bloq_ate"] or 0) > time.time()}
 
@@ -450,6 +522,9 @@ def me():
         j["ultimo_acesso"] = {"quando": ac[1]["quando"], "ip": ac[1]["ip"], "agente": ac[1]["agente"]}
     j["exigir_2fa"] = EXIGIR_2FA_ADMIN
     j["demo"] = DEMO
+    j["foco"] = r["foco_ate"] if r["foco_ate"] > time.time() else 0
+    j["perms_nomes"] = PERMS
+    j["perms_perfil"] = PERMS_PADRAO
     if r["admin"]:
         j["avisos"] = get_db().execute("SELECT COUNT(*) FROM avisos WHERE lido=0").fetchone()[0]
     return jsonify(j)
@@ -743,8 +818,9 @@ def alterar_atividades():
                                {**gravar, **{}})
         db.executemany(SQL_INS, [(session["uid"],) + tuple(n[c] for c in COLS) + (revs[i], calc_fim(n, antigas.get(i))) + deleg_de(antigas.get(i))
                        for i, n in gravar.items()])
+        extras.para_lixeira(db, session["uid"], [antigas[i] for i in apagar if i in antigas])
         db.executemany("DELETE FROM atividades WHERE user_id=? AND id=?", [(session["uid"], i) for i in apagar])
-        anexos.apaga_arquivos(db, ANEXOS_DIR, session["uid"], [i for i in apagar if i in antigas])
+        extras.tira_da_lixeira(db, session["uid"], list(gravar))  # desfazer a exclusao: a atividade voltou
     return jsonify(ok=True, gravadas=len(gravar), apagadas=len(apagar), revs=revs, conflitos=conflitos)
 
 
@@ -831,7 +907,7 @@ def painel():
         if late:
             atrasadas[a["user_id"]] = atrasadas.get(a["user_id"], 0) + 1
     out = []
-    for u in db.execute("SELECT id, nome, cargo FROM usuarios ORDER BY nome"):
+    for u in db.execute("SELECT id, nome, cargo, foco_ate, foco_txt FROM usuarios ORDER BY nome"):
         it = por.get(u["id"], [])
         md, ms = gestao.efetiva(pd, ps, ov.get(u["id"]))
         out.append({"id": u["id"], "nome": u["nome"], "cargo": u["cargo"], "total": len(it),
@@ -840,7 +916,8 @@ def painel():
                     "done": sum(i["status"] == "done" for i in it),
                     "min_done": sum(i["dur"] for i in it if i["status"] == "done"), "itens": it,
                     "meta_dia": md, "meta_sem": ms, "feitas_sem": sem.get(u["id"], 0),
-                    "atrasadas": atrasadas.get(u["id"], 0)})
+                    "atrasadas": atrasadas.get(u["id"], 0),
+                    "foco": u["foco_ate"] if u["foco_ate"] > time.time() else 0, "foco_txt": u["foco_txt"]})
     return jsonify(data=dia, usuarios=out, semana=[seg.isoformat(), dom.isoformat()])
 
 
@@ -882,14 +959,21 @@ def editar_usuario(uid):
     admin = 1 if perfil == "admin" else 0
     cargo = str(d.get("cargo", "")).strip()[:80]
     db = get_db()
-    alvo = db.execute("SELECT nome, cargo, admin, perfil FROM usuarios WHERE id=?", (uid,)).fetchone()
+    alvo = db.execute("SELECT nome, cargo, admin, perfil, permissoes FROM usuarios WHERE id=?", (uid,)).fetchone()
+    try:
+        perms = limpa_perms(d.get("perms")) if "perms" in d else (alvo["permissoes"] if alvo else "")
+    except ValueError as e:
+        return jsonify(erro=str(e)), 400
     if not alvo:
         return jsonify(erro="Usuário não encontrado."), 404
     if alvo["admin"] and not admin and db.execute("SELECT COUNT(*) FROM usuarios WHERE admin=1").fetchone()[0] <= 1:
         return jsonify(erro="Precisa existir ao menos um administrador."), 400
     with db:
-        db.execute("UPDATE usuarios SET nome=?, cargo=?, admin=?, perfil=? WHERE id=?", (nome, cargo, admin, perfil, uid))
+        db.execute("UPDATE usuarios SET nome=?, cargo=?, admin=?, perfil=?, permissoes=? WHERE id=?",
+                   (nome, cargo, admin, perfil, perms if perfil != "admin" else "", uid))
         mud = []
+        if (alvo["permissoes"] or "") != (perms if perfil != "admin" else ""):
+            mud.append("permissões: " + (", ".join(PERMS[p] for p in json.loads(perms)) if perms and perfil != "admin" else "padrão do perfil"))
         if alvo["perfil"] != perfil:
             mud.append("perfil: %s → %s" % (PERFIL_NOME.get(alvo["perfil"], alvo["perfil"]), PERFIL_NOME[perfil]))
         if alvo["nome"] != nome:
@@ -1072,14 +1156,16 @@ def saude():
         disco = {"livre": 0, "total": 0}
     return jsonify(
         banco={"tamanho": tam, "integridade": integ}, contagens=cont,
-        backups={"pasta": BACKUP_DIR, "total": len(bk), "manter": BACKUP_KEEP, "ultimo": bk[0] if bk else None},
+        backups={"pasta": BACKUP_DIR, "total": len(bk), "manter": BACKUP_KEEP, "ultimo": bk[0] if bk else None,
+                 "copia": {"pasta": BACKUP_COPIA, **COPIA_STATUS} if BACKUP_COPIA else None},
         online=online, ativos24h=ativos24, disco=disco,
         servidor={"python": sys.version.split()[0], "https": USAR_HTTPS, "sessao_min": SESSAO_MIN, "host": HOST, "porta": PORT,
                   "inicio": datetime.fromtimestamp(INICIO_PROC).strftime("%Y-%m-%d %H:%M"), "uptime_s": int(agora - INICIO_PROC)})
 
 
 relatorios.register(app, get_db, login_required, pode_equipe)
-gestao.register(app, get_db, login_required, equipe_required, pode_equipe)
+gestao.register(app, get_db, login_required, equipe_required, pode_equipe, tem_perm)
+extras.register(app, get_db, login_required, tem_perm, perm_required, ANEXOS_DIR, ator)
 importar.register(app, login_required)
 anexos.register(app, get_db, login_required, pode_equipe, ANEXOS_DIR)
 seguranca.register(app, get_db, login_required, admin_required, agente_curto, SESSAO_MIN)
@@ -1174,7 +1260,38 @@ def fazer_backup():
             poda_espelho()
         except OSError:
             pass
+        if BACKUP_COPIA:
+            copia_externa(destino)
         return nome
+
+
+def copia_externa(destino):
+    """Copia o backup (e os anexos novos) para BACKUP_COPIA. Se falhar, avisa o administrador."""
+    quando = datetime.now().strftime("%Y-%m-%d %H:%M")
+    try:
+        os.makedirs(os.path.join(BACKUP_COPIA, "anexos"), exist_ok=True)
+        copia_arquivo(destino, os.path.join(BACKUP_COPIA, os.path.basename(destino)))
+        for arq in anexos_do_banco(destino):
+            o, d = os.path.join(ANEXOS_DIR, arq), os.path.join(BACKUP_COPIA, "anexos", arq)
+            if os.path.isfile(o) and not os.path.isfile(d):
+                copia_arquivo(o, d)
+        antigos = sorted(f for f in os.listdir(BACKUP_COPIA) if RE_BKP.match(f))
+        for f in antigos[:-BACKUP_KEEP] if BACKUP_KEEP > 0 else []:
+            try:
+                os.remove(os.path.join(BACKUP_COPIA, f))
+            except OSError:
+                pass
+        COPIA_STATUS.update(ok=True, quando=quando, erro="")
+    except Exception as e:  # o backup local ja esta salvo
+        COPIA_STATUS.update(ok=False, quando=quando, erro=str(e)[:200])
+        print("  AVISO: falha ao copiar o backup para", BACKUP_COPIA, "-", e)
+        try:
+            con = connect()
+            with con:
+                seguranca.aviso(con, "backup", "Falha ao copiar o backup para %s: %s" % (BACKUP_COPIA, e))
+            con.close()
+        except Exception:
+            pass
 
 
 def restaura_anexos(caminho_banco):

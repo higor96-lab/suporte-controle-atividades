@@ -124,7 +124,7 @@ def _meta_num(v):
     return n
 
 
-def register(app, get_db, login_required, equipe_required, pode_equipe):
+def register(app, get_db, login_required, equipe_required, pode_equipe, tem_perm=None):
     def eu():
         return get_db().execute("SELECT id, nome, perfil FROM usuarios WHERE id=?", (session["uid"],)).fetchone()
 
@@ -147,7 +147,7 @@ def register(app, get_db, login_required, equipe_required, pode_equipe):
             return jsonify(erro="Período inválido."), 400
         where = ["date(quando) BETWEEN ? AND ?"]
         args = [p[0].isoformat(), p[1].isoformat()]
-        if u["perfil"] not in ("supervisor", "admin"):
+        if not (tem_perm("ver_alteracoes") if tem_perm else u["perfil"] in ("supervisor", "admin")):
             where.append("ator_id=?")
             args.append(u["id"])
         elif request.args.get("usuario", "").isdigit():
@@ -180,7 +180,7 @@ def register(app, get_db, login_required, equipe_required, pode_equipe):
         out = {"padrao": {"diaria": pd, "semanal": ps}}
         d, s = efetiva(pd, ps, ov.get(u["id"]))
         out["minha"] = {"diaria": d, "semanal": s}
-        if u["perfil"] in ("supervisor", "admin"):
+        if (tem_perm("editar_metas") if tem_perm else u["perfil"] in ("supervisor", "admin")):
             out["usuarios"] = [{"id": r["id"], "nome": r["nome"],
                                 "diaria": (ov.get(r["id"]) or (None, None))[0],
                                 "semanal": (ov.get(r["id"]) or (None, None))[1]}
