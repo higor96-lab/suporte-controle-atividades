@@ -403,22 +403,30 @@ function hsLoad(more){hsInit();var q="de="+$("hDe").value+"&ate="+$("hAte").valu
 $("hQ").addEventListener("input",function(){clearTimeout(hT);hT=setTimeout(hsLoad,300)});
 $("hMais").onclick=function(){hsLoad(true)};
 // notificacoes
-function notifs(){var t=iso(new Date());
-  return{late:items.filter(function(i){return i.status!=="done"&&i.date<t}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0}),
-    doing:items.filter(function(i){return i.status==="doing"&&i.date>=t}),
-    pend:items.filter(function(i){return i.status==="todo"&&i.date===t}),
+// notificacoes lidas: some do sino ao clicar; volta se a atividade mudar de data ou de situacao
+function nlKey(i){return i.id+"|"+i.date+"|"+i.status}
+function nlGet(){try{return JSON.parse(localStorage.getItem("nLidas"+(ME&&ME.id))||"{}")||{}}catch(e){return {}}}
+function nlSet(m){try{localStorage.setItem("nLidas"+(ME&&ME.id),JSON.stringify(m))}catch(e){}}
+function nlMarca(l){var m=nlGet(),vivos={};items.forEach(function(i){vivos[nlKey(i)]=1});Object.keys(m).forEach(function(k){if(!vivos[k])delete m[k]});l.forEach(function(i){m[nlKey(i)]=1});nlSet(m)}
+function notifs(){var t=iso(new Date()),lidas=nlGet(),nl=function(i){return !lidas[nlKey(i)]};
+  return{late:items.filter(function(i){return i.status!=="done"&&i.date<t&&nl(i)}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0}),
+    doing:items.filter(function(i){return i.status==="doing"&&i.date>=t&&nl(i)}),
+    pend:items.filter(function(i){return i.status==="todo"&&i.date===t&&nl(i)}),
     done:items.filter(function(i){return i.status==="done"&&i.date===t}).length}}
 function notifUpdate(){metaUpdate();var n=notifs(),c=n.late.length+n.pend.length,b=$("nBadge");b.textContent=c>99?"99+":c;b.hidden=!c;
   if(!$("np").hidden)notifRender(n)}
-function notifRender(n){n=n||notifs();var sec=function(tit,cor,l,dt){return l.length?'<div class="nh"><i style="background:'+cor+'"></i>'+tit+' ('+l.length+')</div>'+l.slice(0,8).map(function(i){return '<button class="ni" data-d="'+i.date+'"><span>'+esc(i.title)+'</span><small>'+br(i.date)+(i.time?" · "+i.time:"")+'</small></button>'}).join("")+(l.length>8?'<div class="nft" style="border:0;padding:4px 14px">+ '+(l.length-8)+' outras</div>':''):""};
+function notifRender(n){n=n||notifs();var sec=function(tit,cor,l,dt){return l.length?'<div class="nh"><i style="background:'+cor+'"></i>'+tit+' ('+l.length+')</div>'+l.slice(0,8).map(function(i){return '<button class="ni" data-d="'+i.date+'" data-id="'+esc(i.id)+'" title="Abrir a atividade (a notificação some)"><span>'+esc(i.title)+'</span><small>'+br(i.date)+(i.time?" · "+i.time:"")+'</small></button>'}).join("")+(l.length>8?'<div class="nft" style="border:0;padding:4px 14px">+ '+(l.length-8)+' outras</div>':''):""};
   var h=sec("Atrasadas","var(--danger)",n.late)+sec("Em andamento","var(--doing)",n.doing)+sec("Pendentes de hoje","var(--todo)",n.pend);
-  $("nList").innerHTML=h||'<div class="nok"><b>Tudo em dia!</b><br>Nenhuma atividade pendente ou atrasada.</div>';
+  $("nList").innerHTML=h?h+'<div class="nft"><button type="button" class="btn sm" id="nAll">Marcar todas como lidas</button></div>':'<div class="nok"><b>Tudo em dia!</b><br>Nenhuma notificação nova.</div>';
   $("nCnt").textContent=n.late.length+n.pend.length+n.doing.length?"":"";
   $("nCnt").textContent=n.done+(n.done===1?" concluída hoje":" concluídas hoje")}
 function notifClose(){$("np").hidden=true;$("bell").setAttribute("aria-expanded","false")}
 $("bell").onclick=function(e){e.stopPropagation();var abrir=$("np").hidden;closeMenus();if(abrir){notifRender();$("np").hidden=false;$("bell").setAttribute("aria-expanded","true")}else notifClose()};
-$("np").addEventListener("click",function(e){e.stopPropagation();var b=e.target.closest("button[data-d]");if(!b)return;
-  $("day").value=b.getAttribute("data-d");notifClose();if(location.hash==="#visao"||!location.hash)render();else location.hash="#visao";render()});
+$("np").addEventListener("click",function(e){e.stopPropagation();
+  if(e.target.closest("#nAll")){var n=notifs();nlMarca(n.late.concat(n.doing,n.pend));notifUpdate();notifRender();return}
+  var b=e.target.closest("button[data-d]");if(!b)return;var it=findIt(b.getAttribute("data-id"));
+  if(it)nlMarca([it]);notifClose();notifUpdate();
+  $("day").value=b.getAttribute("data-d");if(location.hash!=="#visao"&&location.hash)location.hash="#visao";render();if(it)openDlg(it)});
 document.addEventListener("click",function(){if(!$("np").hidden)notifClose()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")notifClose()});
 setInterval(notifUpdate,60000);
@@ -587,7 +595,8 @@ dz.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.file
 function toast(msg,o){o=o||{};var el=document.createElement("div");el.className="toast"+(o.cls?" "+o.cls:"");el.innerHTML='<span>'+esc(msg)+'</span>'+(o.acao?'<button type="button">'+esc(o.acao)+'</button>':'');
   var box=$("toasts");box.appendChild(el);while(box.children.length>3)box.removeChild(box.firstChild);
   var fin=false;function close(){if(!fin){fin=true;el.remove()}}
-  if(o.acao)el.querySelector("button").onclick=function(){close();if(o.fn)o.fn()};
+  if(o.acao)el.querySelector("button").onclick=function(e){e.stopPropagation();close();if(o.fn)o.fn()};
+  el.querySelector("span").onclick=close;el.querySelector("span").style.cursor="pointer";el.querySelector("span").title="Clique para fechar";
   setTimeout(close,o.ms||5000)}
 var ES={
   dia:{svg:'<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="20" width="68" height="60" rx="10"/><path d="M14 38h68M32 12v14M64 12v14M34 60l9 9 20-20"/></svg>',t:"Dia livre",p:"Nenhuma atividade neste dia. Que tal planejar alguma coisa?",b:'<button class="btn dark" data-es="new">Nova atividade</button>'},
