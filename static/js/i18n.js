@@ -149,6 +149,7 @@ function dia(x){return DIAS[x]?DIAS[x][I]:x}
 // frases com partes variaveis: [regex, ingles, espanhol]
 var P=[
 [/^(Bom dia|Boa tarde|Boa noite)(, .+)?\.$/,function(m){return ({"Bom dia":["Good morning","Buenos días"],"Boa tarde":["Good afternoon","Buenas tardes"],"Boa noite":["Good evening","Buenas noches"]})[m[1]][I]+(m[2]||"")+"."}],
+[/^Versão (\S+)$/,["Version $1","Versión $1"]],
 [/^(\d+) selecionadas?$/,["$1 selected","$1 seleccionadas"]],
 [/^(\d+) de (\d+) entregas concluídas\.$/,["$1 of $2 deliveries done.","$1 de $2 entregas completadas."]],
 [/^(\d+) em andamento$/,["$1 in progress","$1 en curso"]],

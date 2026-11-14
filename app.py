@@ -469,7 +469,7 @@ def index():
     """Entrega a interface com um nonce novo em cada <script>: so os scripts do proprio sistema rodam,
     e um texto malicioso que chegue a tela como HTML nao consegue executar codigo (CSP)."""
     with open(os.path.join(BASE, "static", "index.html"), encoding="utf-8") as f:
-        html = RE_ESTATICO.sub(versiona, f.read())
+        html = RE_ESTATICO.sub(versiona, f.read()).replace("__VERSAO__", VERSAO)
     if CSP_ATIVO:
         nonce = secrets.token_urlsafe(16)
         html = RE_SCRIPT.sub('<script nonce="%s"' % nonce, html)

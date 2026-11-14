@@ -28,6 +28,7 @@
     <p class="lead" style="margin:6px 0 0;font-size:13px">Digite o código de 6 dígitos do aplicativo autenticador ou um código de recuperação.</p></div>
     <p id="le" role="alert"></p>
     <button class="btn dark" id="lb">Entrar</button>
+    <p class="lver">Versão __VERSAO__</p>
     <div class="lidioma" id="lIdioma" role="group" aria-label="Idioma"><button type="button" data-lang="pt">Português</button><button type="button" data-lang="en">English</button><button type="button" data-lang="es">Español</button></div>
   </form></div>
 </div>
@@ -94,7 +95,7 @@
       <!-- Visão geral -->
       <section data-view="visao">
         <div class="hero">
-          <div><div class="date mono" id="dateLbl"></div><h1 id="hello"></h1><p>Vamos fechar o que move o sistema hoje.</p></div>
+          <div><div class="date mono" id="dateLbl"></div><h1 id="hello"></h1><p>Vamos fechar o que move o sistema hoje.</p><small class="verh" title="Versão do sistema">Versão __VERSAO__</small></div>
           <div class="ctl"><input type="date" id="day" aria-label="Data"><button class="btn" id="plBtn" type="button" title="Planejar o dia (P)">☀ Planejar o dia</button><button class="btn" id="rsBtn" type="button" title="Resumo do fim do dia (E)">☾ Encerrar o dia</button><button class="btn dark" id="new">＋ Nova atividade</button></div>
         </div>
         <form class="qa" id="qaF" autocomplete="off"><span class="qai" aria-hidden="true">＋</span><input id="qa" aria-label="Criação rápida" placeholder="Crie digitando: reunião com financeiro amanhã 14h 30min #urgente @Maria" maxlength="300"><button class="btn sm dark" id="qaGo">Criar</button><div class="qap" id="qaPrev" aria-live="polite"></div></form>
