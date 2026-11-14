@@ -56,6 +56,12 @@ Menu *Dados → Importar dados*:
 3. O sistema mostra uma **prévia** com as linhas válidas e os erros (por exemplo, data inválida). Atividades que já existem (mesma data, hora e título) são ignoradas por padrão.
 4. Confirme em **Importar**. Limite: 2000 linhas e 6 MB por arquivo. O importador por CSV continua disponível em "avançado".
 
+## Novidades da versão 3.4 (delegar)
+
+- **Delegar atividade:** no formulário (botão **↪ Delegar**) ou no menu **⋯** da linha. Escolha a pessoa e, se quiser, deixe um recado.
+  A atividade sai da sua lista e vai para a da pessoa com subtarefas, anexos e tempo gasto.
+- Quem recebe vê o selo **↪ de Fulano** e um aviso. Tudo fica no **Histórico** (filtro *Delegou*).
+
 ## Novidades da versão 3.3 (gráficos e telas)
 
 **Gráficos** (*Relatórios > Gráficos*)

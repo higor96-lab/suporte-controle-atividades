@@ -155,7 +155,7 @@ def register(app, get_db, login_required, equipe_required, pode_equipe):
             args.append(int(request.args["usuario"]))
         if u["perfil"] != "admin":
             where.append("entidade!='usuario'")
-        if request.args.get("acao") in ("criou", "alterou", "excluiu"):
+        if request.args.get("acao") in ("criou", "alterou", "excluiu", "delegou"):
             where.append("acao=?")
             args.append(request.args["acao"])
         q = request.args.get("q", "").strip()

@@ -244,7 +244,7 @@
         <div class="card panel"><div class="rf">
           <div><label for="hDe">De</label><input type="date" id="hDe"></div>
           <div><label for="hAte">Até</label><input type="date" id="hAte"></div>
-          <div><label for="hAc">Ação</label><select id="hAc"><option value="">Todas</option><option value="criou">Criou</option><option value="alterou">Alterou</option><option value="excluiu">Excluiu</option></select></div>
+          <div><label for="hAc">Ação</label><select id="hAc"><option value="">Todas</option><option value="criou">Criou</option><option value="alterou">Alterou</option><option value="excluiu">Excluiu</option><option value="delegou">Delegou</option></select></div>
           <div id="hUsW"><label for="hUs">Pessoa</label><select id="hUs"><option value="">Todas</option></select></div>
           <div><label for="hQ">Buscar</label><input id="hQ" type="search" placeholder="Título ou detalhe…"></div>
         </div></div>
@@ -410,9 +410,17 @@
       <div class="c6"><label for="sbIn">Subtarefas <span id="sbProg" class="sbprog"></span></label><ul id="sbList" class="sbe"></ul><div class="sbadd"><input id="sbIn" placeholder="Nova subtarefa — Enter para adicionar" maxlength="120" autocomplete="off"><button type="button" class="btn sm" id="sbAdd">Adicionar</button></div></div>
       <div class="c6"><label>Anexos <span id="anNote" class="sbprog"></span></label><ul id="anList" class="anl"></ul><div class="sbadd"><input type="file" id="anFile" multiple hidden><button type="button" class="btn sm" id="anAdd">＋ Anexar arquivo</button><span class="lead" style="margin:0;font-size:12.5px">ou cole um print com Ctrl+V · até 10 MB cada</span></div></div>
     </div>
-    <div class="fa"><button type="button" class="btn" id="dCancel">Cancelar</button><button class="btn dark" id="dSave">Salvar</button></div>
+    <div class="fa"><button type="button" class="btn" id="dDeleg" hidden title="Passar esta atividade para outra pessoa">↪ Delegar</button><button type="button" class="btn" id="dCancel">Cancelar</button><button class="btn dark" id="dSave">Salvar</button></div>
   </form>
 </dialog>
+<dialog id="dgDlg" aria-labelledby="dgT"><form id="dgForm" autocomplete="off">
+  <h2 id="dgT" style="margin:0 0 4px">Delegar atividade</h2><p class="lead" id="dgSub" style="margin:0 0 14px"></p>
+  <label for="dgPara">Para quem</label><select id="dgPara" required></select>
+  <label for="dgNota" style="margin-top:12px;display:block">Recado (opcional)</label><textarea id="dgNota" maxlength="300" placeholder="Ex.: o cliente pediu retorno até sexta"></textarea>
+  <p class="lead" style="margin:10px 0 0;font-size:12.5px">A atividade sai da sua lista e vai para a pessoa escolhida, com subtarefas, anexos e tempo gasto. Fica registrado no Histórico.</p>
+  <p id="dgErr" role="alert" class="uerr"></p>
+  <div class="rf" style="justify-content:flex-end"><button type="button" class="btn" id="dgCancel">Cancelar</button><button class="btn dark" id="dgOk">Delegar</button></div>
+</form></dialog>
 <div id="pw" class="pwm" hidden><form id="pwf" class="card pwb" autocomplete="off">
   <h2 id="pwt" style="margin:0">Alterar senha</h2><p class="lead" id="pwd" style="margin:0"></p>
   <label>Senha atual<input type="password" id="pwa" autocomplete="current-password" required></label>

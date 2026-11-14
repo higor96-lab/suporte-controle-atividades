@@ -134,3 +134,9 @@ li.row.sel .chk{background:var(--accent);border-color:var(--accent);color:#fff}
   .tl{padding:6px 12px 16px}
   .subtabs a{padding:0 10px;font-size:13.5px}
 }
+/* atividade delegada */
+.dlgd{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:#e6effb;color:#1d5aa6;white-space:nowrap}
+:root[data-theme="dark"] .dlgd{background:#1c2e47;color:#9cc3f5}
+#dgDlg{width:min(460px,calc(100vw - 32px))}
+#dgDlg select,#dgDlg textarea{width:100%}
+#dDeleg{margin-right:auto}

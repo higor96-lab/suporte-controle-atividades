@@ -189,7 +189,9 @@ def init_db():
         if nome not in ucols:
             con.execute("ALTER TABLE usuarios ADD COLUMN %s %s" % (nome, defn))
     cols = [r["name"] for r in con.execute("PRAGMA table_info(atividades)")]
-    for nome, defn in (("prazo", "TEXT NOT NULL DEFAULT ''"), ("fim", "INTEGER NOT NULL DEFAULT 0")):
+    for nome, defn in (("prazo", "TEXT NOT NULL DEFAULT ''"), ("fim", "INTEGER NOT NULL DEFAULT 0"),
+                       ("deleg_de", "TEXT NOT NULL DEFAULT ''"), ("deleg_em", "TEXT NOT NULL DEFAULT ''"),
+                       ("deleg_nota", "TEXT NOT NULL DEFAULT ''")):
         if nome not in cols:
             con.execute("ALTER TABLE atividades ADD COLUMN %s %s" % (nome, defn))
     for nome, defn in (("tags", "TEXT NOT NULL DEFAULT '[]'"), ("subs", "TEXT NOT NULL DEFAULT '[]'"),
@@ -663,7 +665,8 @@ def ativ_json(r, anx=0):
     return {"id": r["id"], "date": r["data"], "time": r["hora"], "dur": r["dur"], "title": r["titulo"],
             "desc": r["descricao"], "cat": r["cat"], "who": r["quem"], "prio": r["prio"], "status": r["status"],
             "tags": tags, "subs": subs, "pin": bool(r["fixa"]), "spent": r["gasto"], "tstart": r["inicio"], "rev": r["rev"],
-            "due": r["prazo"], "fim": r["fim"], "anx": anx}
+            "due": r["prazo"], "fim": r["fim"], "anx": anx,
+            "deleg": {"de": r["deleg_de"], "em": r["deleg_em"], "nota": r["deleg_nota"]} if r["deleg_de"] else None}
 
 
 @app.get("/api/atividades")
@@ -677,7 +680,14 @@ def listar_atividades():
     return jsonify([ativ_json(r, cont.get(r["id"], 0)) for r in rows])
 
 
-SQL_INS = "INSERT OR REPLACE INTO atividades(user_id,%s,rev,fim) VALUES(?,%s,?,?)" % (",".join(COLS), ",".join("?" * len(COLS)))
+SQL_INS = ("INSERT OR REPLACE INTO atividades(user_id,%s,rev,fim,deleg_de,deleg_em,deleg_nota) VALUES(?,%s,?,?,?,?,?)"
+           % (",".join(COLS), ",".join("?" * len(COLS))))
+
+
+def deleg_de(antiga):
+    """O INSERT OR REPLACE regrava a linha inteira: mantem quem delegou."""
+    a = antiga or {}
+    return (a.get("deleg_de", ""), a.get("deleg_em", ""), a.get("deleg_nota", ""))
 
 
 def calc_fim(novo, antigo):
@@ -731,10 +741,54 @@ def alterar_atividades():
     with db:
         gestao.diff_atividades(db, ator(), {i: antigas[i] for i in gravar if i in antigas} | {i: antigas[i] for i in apagar if i in antigas},
                                {**gravar, **{}})
-        db.executemany(SQL_INS, [(session["uid"],) + tuple(n[c] for c in COLS) + (revs[i], calc_fim(n, antigas.get(i))) for i, n in gravar.items()])
+        db.executemany(SQL_INS, [(session["uid"],) + tuple(n[c] for c in COLS) + (revs[i], calc_fim(n, antigas.get(i))) + deleg_de(antigas.get(i))
+                       for i, n in gravar.items()])
         db.executemany("DELETE FROM atividades WHERE user_id=? AND id=?", [(session["uid"], i) for i in apagar])
         anexos.apaga_arquivos(db, ANEXOS_DIR, session["uid"], [i for i in apagar if i in antigas])
     return jsonify(ok=True, gravadas=len(gravar), apagadas=len(apagar), revs=revs, conflitos=conflitos)
+
+
+# -------------------------------------------------------------- delegar
+@app.get("/api/delegar/pessoas")
+@login_required
+def pessoas_delegar():
+    rows = get_db().execute("SELECT id, nome, cargo FROM usuarios WHERE id!=? ORDER BY nome", (session["uid"],)).fetchall()
+    return jsonify([{"id": r["id"], "nome": r["nome"], "cargo": r["cargo"]} for r in rows])
+
+
+@app.post("/api/delegar")
+@login_required
+def delegar():
+    """Passa uma atividade (com subtarefas e anexos) para outra pessoa: {"id", "para", "nota"}."""
+    d = request.get_json(silent=True) or {}
+    aid, nota = str(d.get("id", ""))[:40], str(d.get("nota", "")).strip()[:300]
+    try:
+        para = int(d.get("para"))
+    except (TypeError, ValueError):
+        return jsonify(erro="Escolha para quem delegar."), 400
+    db, eu = get_db(), session["uid"]
+    if para == eu:
+        return jsonify(erro="Escolha outra pessoa."), 400
+    dest = db.execute("SELECT id, nome FROM usuarios WHERE id=?", (para,)).fetchone()
+    if not dest:
+        return jsonify(erro="Pessoa não encontrada."), 404
+    a = db.execute("SELECT * FROM atividades WHERE user_id=? AND id=?", (eu, aid)).fetchone()
+    if not a:
+        return jsonify(erro="Atividade não encontrada (atualize a página)."), 404
+    novo = aid
+    while db.execute("SELECT 1 FROM atividades WHERE user_id=? AND id=?", (para, novo)).fetchone():
+        novo = secrets.token_hex(6)
+    agora = int(time.time())
+    gasto = a["gasto"] + (agora - a["inicio"] if a["inicio"] else 0)  # cronometro ligado: para e guarda o tempo
+    me = ator()
+    with db:
+        db.execute("UPDATE atividades SET user_id=?, id=?, gasto=?, inicio=0, fixa=0, rev=rev+1, "
+                   "deleg_de=?, deleg_em=?, deleg_nota=? WHERE user_id=? AND id=?",
+                   (para, novo, gasto, me["nome"], datetime.now().strftime("%Y-%m-%d %H:%M"), nota, eu, aid))
+        db.execute("UPDATE anexos SET user_id=?, atividade_id=? WHERE user_id=? AND atividade_id=?", (para, novo, eu, aid))
+        gestao.log(db, me, "atividade", "delegou", novo, a["titulo"],
+                   "Para: " + dest["nome"] + ((" — " + nota) if nota else ""))
+    return jsonify(ok=True, para=dest["nome"])
 
 
 # -------------------------------------------------------------- usuarios

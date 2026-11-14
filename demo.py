@@ -95,6 +95,12 @@ def semear(db_path, base):
                          rnd.choice(["alta", "media", "media", "baixa"]), st,
                          json.dumps(rnd.sample(TAGS, rnd.choice([0, 0, 1, 1, 2])), ensure_ascii=False),
                          json.dumps(subs, ensure_ascii=False), gasto, prazo, fim))
+            # duas pendentes do visitante chegaram delegadas por colegas (mostra o recurso de delegar)
+            pend = [r[0] for r in con.execute("SELECT id FROM atividades WHERE user_id=1 AND status!='done' AND data>=? "
+                                              "ORDER BY data, hora LIMIT 2", (hoje.isoformat(),))]
+            for aid, (_, _, nome, _, _), nota in zip(pend, EQUIPE[1:], ("Pode assumir? Estou em treinamento hoje.", "")):
+                con.execute("UPDATE atividades SET deleg_de=?, deleg_em=?, deleg_nota=? WHERE user_id=1 AND id=?",
+                            (nome, datetime.now().strftime("%Y-%m-%d %H:%M"), nota, aid))
     finally:
         con.close()
     with open(_carimbo(base), "w", encoding="utf-8") as f:

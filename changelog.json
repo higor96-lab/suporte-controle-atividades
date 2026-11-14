@@ -1,4 +1,11 @@
 [
+  {"versao": "3.4.0", "data": "2026-11-14", "titulo": "Delegar atividades",
+   "itens": [
+     "Delegar: no formulário da atividade (botão ↪ Delegar) ou no menu ⋯ da linha, escolha a pessoa e deixe um recado opcional.",
+     "A atividade vai para a lista da pessoa com subtarefas, anexos e tempo gasto; o cronômetro em andamento é parado e somado.",
+     "Quem recebe vê o selo “↪ de Fulano” (com o recado ao passar o mouse) e um aviso na próxima vez que abrir o sistema.",
+     "Fica registrado no Histórico de alterações, com o novo filtro “Delegou”."
+   ]},
   {"versao": "3.3.0", "data": "2026-11-13", "titulo": "Gráficos interativos e telas novas",
    "itens": [
      "Gráficos com indicadores e comparação com o período anterior, valores ao passar o mouse e clique para ver as atividades.",
