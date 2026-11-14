@@ -3,7 +3,9 @@
   var $=function(i){return document.getElementById(i)},ME=window.ME;
   var H={"Content-Type":"application/json","X-Requested-With":"fetch"};
   // logo da instituicao no fundo do login: so aparece se existir static/marca/logo.png (fica so no servidor)
-  (function(){var im=new Image();im.onload=function(){$("lMarca").hidden=false};im.src="/static/marca/logo.png"})();
+  // e a imagem de fundo (static/marca/fundo.jpg); sem elas, fica o fundo padrao de rede de dados
+  (function(){var im=new Image();im.onload=function(){$("lMarcaImg").src=im.src;$("lMarca").hidden=false;$("login").classList.add("comlogo")};im.src="/static/marca/logo.png";
+    var fu=new Image();fu.onload=function(){$("login").classList.add("comfoto")};fu.src="/static/marca/fundo.jpg"})();
   // versao na tela: se o servidor ainda nao foi reiniciado depois da atualizacao, nao mostra o marcador cru
   Array.prototype.forEach.call(document.querySelectorAll(".verh,.lver"),function(e){if(/__VERSAO__/.test(e.textContent))e.hidden=true});
   if(ME){document.body.classList.remove("locked");$("who").textContent=ME.nome+(ME.cargo?" · "+ME.cargo:"");if(ME.admin)$("gAdm").hidden=false;if(ME.equipe)$("gEq").hidden=false;else{$("rUsr").parentNode.hidden=true;$("gEscW").hidden=true;$("hUsW").hidden=true}}else $("lu").focus();
