@@ -11,3 +11,6 @@ config.bat
 atualizacoes/
 versoes_anteriores/
 logs/
+
+# logo da instituicao: fica so no servidor (o repositorio e publico)
+static/marca/
