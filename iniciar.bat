@@ -6,7 +6,7 @@ title Suporte
 rem ===== CONFIGURACAO PADRAO =====
 rem Para mudar IP, porta e outras opcoes NESTA maquina, copie config.exemplo.bat para config.bat e edite.
 set HOST=0.0.0.0
-set PORT=5000
+set PORT=8000
 set HTTPS=1
 set SESSAO_MIN=60
 if exist "config.bat" call "config.bat"

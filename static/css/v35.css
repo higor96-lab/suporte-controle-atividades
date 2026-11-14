@@ -224,3 +224,5 @@ html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.a
 .lver{text-align:center;margin:14px 28px 0;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--muted)}
 .lver+.lidioma{margin-top:4px}
 .verh[hidden],.lver[hidden]{display:none}
+/* campos tirados do formulario da atividade (prazo, etiquetas, subtarefas, anexos): os dados ja gravados sao mantidos */
+#form .fremov{display:none!important}

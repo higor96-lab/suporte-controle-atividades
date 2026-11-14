@@ -248,7 +248,8 @@ function anUp(id,f){return fetch("/api/atividades/"+encodeURIComponent(id)+"/ane
 function anSendAll(id,files){whenSaved(function(){var p=Promise.resolve(),fails=[];
   files.forEach(function(f){p=p.then(function(){return anUp(id,f)}).then(function(x){if(x.ok){var it=findIt(id);if(it){it.anx=x.d.anexos.length;render()}}else fails.push(f.name+": "+(x.d.erro||"erro"))})});
   return p.then(function(){if(fails.length)toast("Anexo não enviado — "+fails[0],{ms:7000});else toast(files.length+" anexo"+(files.length>1?"s":"")+" enviado"+(files.length>1?"s":"")+".",{ms:2500})})})}
-function anAdd(list){
+function anAdd(list){if($("anAdd").closest(".fremov"))return;  // campo Anexos tirado do formulario
+
   Array.prototype.forEach.call(list,function(f){
     if(f.size>10*1024*1024){toast("“"+f.name+"” passa de 10 MB.",{ms:5000});return}
     if(editing){var id=editing;whenSaved(function(){return anUp(id,f).then(function(x){
@@ -265,7 +266,7 @@ $("anList").addEventListener("click",function(e){
 $("lbx").onclick=function(){this.close()};
 $("dlg").addEventListener("paste",function(e){var fs=[];Array.prototype.forEach.call((e.clipboardData&&e.clipboardData.files)||[],function(f){fs.push(f)});
   if(fs.length){e.preventDefault();fs=fs.map(function(f){if(f.name&&!/^image\.(png|jpe?g)$/i.test(f.name))return f;var t=new Date(),n="print-"+iso(t)+"-"+("0"+t.getHours()).slice(-2)+("0"+t.getMinutes()).slice(-2)+("0"+t.getSeconds()).slice(-2)+".png";return new File([f],n,{type:f.type||"image/png"})});anAdd(fs)}});
-["dragover","dragenter"].forEach(function(ev){$("dlg").addEventListener(ev,function(e){if(e.dataTransfer&&Array.prototype.indexOf.call(e.dataTransfer.types||[],"Files")>-1){e.preventDefault();$("dlg").classList.add("dropz")}})});
+["dragover","dragenter"].forEach(function(ev){$("dlg").addEventListener(ev,function(e){if($("anAdd").closest(".fremov"))return;if(e.dataTransfer&&Array.prototype.indexOf.call(e.dataTransfer.types||[],"Files")>-1){e.preventDefault();$("dlg").classList.add("dropz")}})});
 ["dragleave","drop"].forEach(function(ev){$("dlg").addEventListener(ev,function(){$("dlg").classList.remove("dropz")})});
 $("dlg").addEventListener("drop",function(e){if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();anAdd(e.dataTransfer.files)}});
 $("fDueX").onclick=function(){$("fDueD").value="";$("fDueT").value=""};

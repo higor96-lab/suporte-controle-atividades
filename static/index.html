@@ -443,12 +443,12 @@
       <div class="c3"><label for="fSt">Situação</label><select id="fSt"><option value="todo">Pendente</option><option value="doing">Em andamento</option><option value="done">Concluída</option></select></div>
       <div class="c3"><label for="fReal">Tempo real gasto (min)</label><input type="number" id="fReal" min="0" step="1" value="0"></div>
       <div class="c3"><label class="ckl"><input type="checkbox" id="fPin"> Fixar no topo da lista do dia</label></div>
-      <div class="c2"><label for="fDueD">Prazo (data)</label><input type="date" id="fDueD"></div>
-      <div class="c2"><label for="fDueT">Hora do prazo</label><input type="time" id="fDueT"></div>
-      <div class="c2"><label>&nbsp;</label><button type="button" class="btn sm" id="fDueX">Sem prazo</button></div>
-      <div class="c6"><label for="tgIn">Etiquetas</label><div class="tagbox" id="tgBox"><span id="tgChips"></span><input id="tgIn" placeholder="Digite e pressione Enter" list="tgList" maxlength="24" autocomplete="off"></div><datalist id="tgList"></datalist></div>
-      <div class="c6"><label for="sbIn">Subtarefas <span id="sbProg" class="sbprog"></span></label><ul id="sbList" class="sbe"></ul><div class="sbadd"><input id="sbIn" placeholder="Nova subtarefa — Enter para adicionar" maxlength="120" autocomplete="off"><button type="button" class="btn sm" id="sbAdd">Adicionar</button></div></div>
-      <div class="c6"><label>Anexos <span id="anNote" class="sbprog"></span></label><ul id="anList" class="anl"></ul><div class="sbadd"><input type="file" id="anFile" multiple hidden><button type="button" class="btn sm" id="anAdd">＋ Anexar arquivo</button><span class="lead" style="margin:0;font-size:12.5px">ou cole um print com Ctrl+V · até 10 MB cada</span></div></div>
+      <div class="fremov c2"><label for="fDueD">Prazo (data)</label><input type="date" id="fDueD"></div>
+      <div class="fremov c2"><label for="fDueT">Hora do prazo</label><input type="time" id="fDueT"></div>
+      <div class="fremov c2"><label>&nbsp;</label><button type="button" class="btn sm" id="fDueX">Sem prazo</button></div>
+      <div class="fremov c6"><label for="tgIn">Etiquetas</label><div class="tagbox" id="tgBox"><span id="tgChips"></span><input id="tgIn" placeholder="Digite e pressione Enter" list="tgList" maxlength="24" autocomplete="off"></div><datalist id="tgList"></datalist></div>
+      <div class="fremov c6"><label for="sbIn">Subtarefas <span id="sbProg" class="sbprog"></span></label><ul id="sbList" class="sbe"></ul><div class="sbadd"><input id="sbIn" placeholder="Nova subtarefa — Enter para adicionar" maxlength="120" autocomplete="off"><button type="button" class="btn sm" id="sbAdd">Adicionar</button></div></div>
+      <div class="fremov c6"><label>Anexos <span id="anNote" class="sbprog"></span></label><ul id="anList" class="anl"></ul><div class="sbadd"><input type="file" id="anFile" multiple hidden><button type="button" class="btn sm" id="anAdd">＋ Anexar arquivo</button><span class="lead" style="margin:0;font-size:12.5px">ou cole um print com Ctrl+V · até 10 MB cada</span></div></div>
     </div>
     <div class="fa"><button type="button" class="btn" id="dDeleg" hidden title="Passar esta atividade para outra pessoa">↪ Delegar</button><button type="button" class="btn" id="dCancel">Cancelar</button><button class="btn dark" id="dSave">Salvar</button></div>
   </form>
