@@ -1,0 +1,208 @@
+// Idioma da tela (3.5): portugues (padrao), ingles e espanhol.
+// Traduz os textos fixos da interface e as mensagens mais comuns por dicionario, inclusive o que e
+// desenhado depois (MutationObserver). Os dados digitados (titulos, nomes, descricoes) nao sao traduzidos.
+(function(){
+"use strict";
+var L="pt";try{L=localStorage.getItem("idioma")||"pt"}catch(e){}
+if(L!=="en"&&L!=="es")L="pt";
+window.IDIOMA=L;
+var LOC={pt:"pt-BR",en:"en-US",es:"es-ES"}[L];
+document.documentElement.lang={pt:"pt-BR",en:"en",es:"es"}[L];
+window.trocaIdioma=function(n){try{localStorage.setItem("idioma",n)}catch(e){}location.reload()};
+["apIdioma","lIdioma"].forEach(function(id){var g=document.getElementById(id);if(!g)return;
+  Array.prototype.forEach.call(g.querySelectorAll("[data-lang]"),function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-lang")===L))});
+  g.addEventListener("click",function(e){var b=e.target.closest("[data-lang]");if(b&&b.getAttribute("data-lang")!==L)window.trocaIdioma(b.getAttribute("data-lang"))})});
+if(L==="pt")return;
+// datas e numeros: o sistema pede "pt-BR"; aqui vira o idioma escolhido
+["toLocaleDateString","toLocaleTimeString","toLocaleString"].forEach(function(f){var o=Date.prototype[f];Date.prototype[f]=function(l,op){return o.call(this,l==="pt-BR"?LOC:l,op)}});
+var on=Number.prototype.toLocaleString;Number.prototype.toLocaleString=function(l,op){return on.call(this,l==="pt-BR"?LOC:l,op)};
+var I=L==="en"?0:1;
+// [portugues, ingles, espanhol]
+var T=[
+["Suporte · Controle de atividades","Support · Activity tracker","Soporte · Control de actividades"],
+["Organize o dia, acompanhe a equipe e mostre resultados, tudo num lugar só.","Plan your day, follow your team and show results, all in one place.","Organiza el día, sigue al equipo y muestra resultados, todo en un solo lugar."],
+["Agenda do dia, prazos e lembretes","Daily agenda, deadlines and reminders","Agenda del día, plazos y recordatorios"],
+["Delegação e painel da equipe","Delegation and team dashboard","Delegación y panel del equipo"],
+["Relatórios e gráficos prontos para apresentar","Reports and charts ready to present","Informes y gráficos listos para presentar"],
+["Controle de atividades · entre com seu usuário e senha","Activity tracker · sign in with your username and password","Control de actividades · entra con tu usuario y contraseña"],
+["Usuário","Username","Usuario"],["Senha","Password","Contraseña"],["Código de verificação","Verification code","Código de verificación"],
+["Digite o código de 6 dígitos do aplicativo autenticador ou um código de recuperação.","Enter the 6-digit code from your authenticator app or a recovery code.","Escribe el código de 6 dígitos de la app autenticadora o un código de recuperación."],
+["Entrar","Sign in","Entrar"],
+["Sem conexão com o servidor. Você pode continuar trabalhando: as alterações ficam guardadas neste computador e são enviadas sozinhas quando a conexão voltar.","No connection to the server. You can keep working: changes are saved on this computer and sent automatically when the connection is back.","Sin conexión con el servidor. Puedes seguir trabajando: los cambios se guardan en este equipo y se envían solos cuando vuelva la conexión."],
+["Se a rede está normal, aperte Ctrl+Shift+R (o certificado do servidor pode ter sido renovado).","If the network is fine, press Ctrl+Shift+R (the server certificate may have been renewed).","Si la red está bien, pulsa Ctrl+Shift+R (el certificado del servidor puede haberse renovado)."],
+["Abrir ou fechar menu","Open or close menu","Abrir o cerrar menú"],["Buscar ou ir para (Ctrl+K)","Search or go to (Ctrl+K)","Buscar o ir a (Ctrl+K)"],["Buscar ou ir para…","Search or go to…","Buscar o ir a…"],["Buscar ou ir para","Search or go to","Buscar o ir a"],
+["Atalhos de teclado","Keyboard shortcuts","Atajos de teclado"],["Atalhos de teclado (?)","Keyboard shortcuts (?)","Atajos de teclado (?)"],
+["Alternar modo claro e escuro","Toggle light and dark mode","Cambiar modo claro y oscuro"],["Modo claro/escuro (T)","Light/dark mode (T)","Modo claro/oscuro (T)"],
+["Não perturbe ligado — clique para encerrar","Do not disturb is on — click to end","No molestar activado — haz clic para terminar"],
+["Notificações","Notifications","Notificaciones"],["Alterar senha","Change password","Cambiar contraseña"],["Alterar minha senha","Change my password","Cambiar mi contraseña"],["Sair","Sign out","Salir"],["Minha conta","My account","Mi cuenta"],
+["Não perturbe…","Do not disturb…","No molestar…"],["Não perturbe","Do not disturb","No molestar"],["Encerrar não perturbe","End do not disturb","Terminar no molestar"],["Ligar não perturbe","Turn on do not disturb","Activar no molestar"],
+["Aparência e preferências","Appearance and preferences","Apariencia y preferencias"],["Segurança da conta","Account security","Seguridad de la cuenta"],["Usar no celular","Use on your phone","Usar en el móvil"],["Personalizar atalhos","Customize shortcuts","Personalizar atajos"],
+["Atalhos","Shortcuts","Atajos"],["Busca geral","Global search","Búsqueda general"],["Visão geral","Overview","Vista general"],["Atividades","Activities","Actividades"],["Importar dados","Import data","Importar datos"],["Histórico","History","Historial"],
+["Buscar atividade…","Search activity…","Buscar actividad…"],["Buscar atividade","Search activity","Buscar actividad"],["＋ Nova atividade","＋ New activity","＋ Nueva actividad"],["Nova atividade","New activity","Nueva actividad"],["Editar atividade","Edit activity","Editar actividad"],
+["Seções","Sections","Secciones"],["Hoje","Today","Hoy"],["Atividades do dia","Today's activities","Actividades del día"],["Atrasadas","Overdue","Atrasadas"],["Relatórios","Reports","Informes"],["Equipe","Team","Equipo"],["Administração","Administration","Administración"],
+["Atalhos rápidos","Quick links","Accesos rápidos"],["Calendário","Calendar","Calendario"],["Quadro","Board","Tablero"],["Modo foco","Focus mode","Modo enfoque"],["Importar","Import","Importar"],["Exportar CSV","Export CSV","Exportar CSV"],["Aparência","Appearance","Apariencia"],
+["Ritmo do dia","Day progress","Ritmo del día"],["Início ›","Home ›","Inicio ›"],["Telas desta seção","Screens in this section","Pantallas de esta sección"],
+["Vamos fechar o que move o sistema hoje.","Let's get today's work done.","Cerremos hoy lo que mueve el sistema."],["Data","Date","Fecha"],
+["Planejar o dia (P)","Plan the day (P)","Planificar el día (P)"],["☀ Planejar o dia","☀ Plan the day","☀ Planificar el día"],["Planejar o dia","Plan the day","Planificar el día"],
+["Resumo do fim do dia (E)","End-of-day summary (E)","Resumen del final del día (E)"],["☾ Encerrar o dia","☾ Wrap up the day","☾ Cerrar el día"],["Resumo do fim do dia","End-of-day summary","Resumen del final del día"],
+["Criação rápida","Quick add","Creación rápida"],["Crie digitando: reunião com financeiro amanhã 14h 30min #urgente @Maria","Type to create: meeting with finance tomorrow 14:00 30min #urgent @Maria","Crea escribiendo: reunión con finanzas mañana 14:00 30min #urgente @Maria"],["Criar","Create","Crear"],
+["Agenda de hoje","Today's agenda","Agenda de hoy"],["Seu fluxo de trabalho","Your workflow","Tu flujo de trabajo"],["Como mostrar o dia","How to show the day","Cómo mostrar el día"],
+["Resumo","Summary","Resumen"],["Lista","List","Lista"],["Linha do tempo","Timeline","Línea de tiempo"],["Selecionar","Select","Seleccionar"],
+["Categoria","Category","Categoría"],["Etiqueta","Tag","Etiqueta"],["Prioridade","Priority","Prioridad"],["Todas as prioridades","All priorities","Todas las prioridades"],["Todas as categorias","All categories","Todas las categorías"],["Todas as etiquetas","All tags","Todas las etiquetas"],
+["Alta","High","Alta"],["Média","Medium","Media"],["Baixa","Low","Baja"],
+["Checklist rápido","Quick checklist","Checklist rápido"],["Pequenas tarefas","Small tasks","Tareas pequeñas"],["Ex.: ligar para o Paulo","E.g.: call Paul","Ej.: llamar a Pablo"],["Novo item do checklist","New checklist item","Nuevo elemento del checklist"],["Adicionar","Add","Agregar"],
+["Nada por aqui. Anote coisas rápidas, sem data nem hora.","Nothing here. Jot down quick things, no date or time.","Nada por aquí. Anota cosas rápidas, sin fecha ni hora."],["Remover item","Remove item","Quitar elemento"],
+["Sinais rápidos","Quick signals","Señales rápidas"],["Contexto do trabalho","Work context","Contexto del trabajo"],
+["Todas as datas","All dates","Todas las fechas"],["Filtrar por prazo","Filter by deadline","Filtrar por plazo"],["Todas","All","Todas"],["Com prazo","With deadline","Con plazo"],["Em aberto","Open","Abiertas"],
+["Anterior","Previous","Anterior"],["Próximo","Next","Siguiente"],["Modo do calendário","Calendar mode","Modo del calendario"],["Semana","Week","Semana"],["Mês","Month","Mes"],
+["Arraste uma atividade para outro dia para reagendar. Toque ou clique para editar.","Drag an activity to another day to reschedule. Tap or click to edit.","Arrastra una actividad a otro día para reprogramarla. Toca o haz clic para editar."],
+["Período","Period","Período"],["Período do quadro","Board period","Período del tablero"],["Esta semana","This week","Esta semana"],["Dia selecionado","Selected day","Día seleccionado"],["Este mês","This month","Este mes"],["Tudo","All","Todo"],
+["Arraste os cartões entre as colunas (ou use as setas) para mudar a situação.","Drag cards between columns (or use the arrows) to change status.","Arrastra las tarjetas entre columnas (o usa las flechas) para cambiar el estado."],
+["Saúde do sistema","System health","Salud del sistema"],["Situação do servidor, do banco de dados e dos backups.","Server, database and backup status.","Estado del servidor, la base de datos y las copias."],["Atualizar","Refresh","Actualizar"],["Segurança","Security","Seguridad"],
+["Avisos de bloqueio, contas bloqueadas e verificação em duas etapas dos administradores.","Lockout alerts, locked accounts and admins' two-step verification.","Avisos de bloqueo, cuentas bloqueadas y verificación en dos pasos de los administradores."],
+["Quem está conectado","Who is connected","Quién está conectado"],["Sessões abertas","Open sessions","Sesiones abiertas"],["Últimos 200 registros","Last 200 records","Últimos 200 registros"],["Acessos","Sign-ins","Accesos"],
+["Sobre e atualização","About and updates","Acerca de y actualización"],["Atualizar o sistema","Update the system","Actualizar el sistema"],["Verificar pacote","Check package","Verificar paquete"],["O que mudou em cada versão","What changed in each version","Qué cambió en cada versión"],
+["Encontre qualquer atividade sua, de qualquer data.","Find any of your activities, from any date.","Encuentra cualquier actividad tuya, de cualquier fecha."],["Palavra no título, descrição ou pessoa…","Word in title, description or person…","Palabra en título, descripción o persona…"],["Texto da busca","Search text","Texto de búsqueda"],
+["De","From","Desde"],["Até","To","Hasta"],["Tipo","Type","Tipo"],["Situação","Status","Estado"],["Abertas (pendentes e em andamento)","Open (pending and in progress)","Abiertas (pendientes y en curso)"],
+["Pendentes","Pending","Pendientes"],["Em andamento","In progress","En curso"],["Concluídas","Done","Completadas"],["7 dias","7 days","7 días"],["30 dias","30 days","30 días"],["60 dias","60 days","60 días"],["90 dias","90 days","90 días"],["Este ano","This year","Este año"],["Limpar","Clear","Limpiar"],["Resultado","Results","Resultado"],
+["Importar atividades","Import activities","Importar actividades"],["Envie uma planilha Excel (.xlsx) com várias atividades de uma vez. Você confere tudo antes de importar.","Upload an Excel sheet (.xlsx) with many activities at once. You review everything before importing.","Sube una hoja de Excel (.xlsx) con varias actividades a la vez. Revisas todo antes de importar."],
+["Baixar modelo Excel","Download Excel template","Descargar plantilla Excel"],["Escolher planilha","Choose spreadsheet","Elegir hoja"],["ou arraste o arquivo .xlsx até aqui","or drag the .xlsx file here","o arrastra el archivo .xlsx aquí"],
+["Ignorar atividades que já existem (mesma data, hora e título)","Skip activities that already exist (same date, time and title)","Ignorar actividades que ya existen (misma fecha, hora y título)"],["Cancelar","Cancel","Cancelar"],
+["Importar por CSV (avançado)","Import from CSV (advanced)","Importar por CSV (avanzado)"],["Arquivo CSV","CSV file","Archivo CSV"],["Importar CSV","Import CSV","Importar CSV"],["Baixar modelo CSV","Download CSV template","Descargar plantilla CSV"],
+["Backups","Backups","Copias de seguridad"],["O sistema faz um backup por dia automaticamente.","The system makes one backup per day automatically.","El sistema hace una copia por día automáticamente."],["Fazer backup agora","Back up now","Hacer copia ahora"],["Fazer backup","Back up","Hacer copia"],
+["Últimos 30 dias","Last 30 days","Últimos 30 días"],["Últimos 90 dias","Last 90 days","Últimos 90 días"],["Personalizado","Custom","Personalizado"],["Visão","View","Vista"],["Minhas atividades","My activities","Mis actividades"],["Toda a equipe","Whole team","Todo el equipo"],
+["Comparar com o período anterior","Compare with previous period","Comparar con el período anterior"],["Tela cheia, sem menus, para reuniões","Full screen, no menus, for meetings","Pantalla completa, sin menús, para reuniones"],["Modo apresentação","Presentation mode","Modo presentación"],
+["Gráficos","Charts","Gráficos"],["Concluídas por dia","Done per day","Completadas por día"],["Clique em um dia para ver as atividades","Click a day to see its activities","Haz clic en un día para ver las actividades"],["Salvar o gráfico como imagem","Save chart as image","Guardar gráfico como imagen"],
+["Tempo concluído por tipo","Completed time by type","Tiempo completado por tipo"],["Horas previstas das atividades concluídas","Planned hours of completed activities","Horas previstas de las actividades completadas"],["Previsto × realizado por tipo","Planned × actual by type","Previsto × real por tipo"],["Realizado = tempo do cronômetro","Actual = timer time","Real = tiempo del cronómetro"],
+["Cumprimento de prazos","Deadline compliance","Cumplimiento de plazos"],["Atividades com prazo no período","Activities with a deadline in the period","Actividades con plazo en el período"],["Semana a semana","Week by week","Semana a semana"],["Concluídas nas últimas 8 semanas","Done in the last 8 weeks","Completadas en las últimas 8 semanas"],
+["Quem mais demanda","Top requesters","Quién más solicita"],["Precisão das estimativas","Estimate accuracy","Precisión de las estimaciones"],["Tempo real × previsto nas concluídas com cronômetro","Actual × planned time on activities timed with the timer","Tiempo real × previsto en las completadas con cronómetro"],
+["Mapa de calor","Heat map","Mapa de calor"],["Concluídas por dia da semana e hora planejada","Done by weekday and planned hour","Completadas por día de la semana y hora planificada"],["Comparação entre pessoas","Comparison between people","Comparación entre personas"],["Concluídas no período","Done in the period","Completadas en el período"],["Sair da apresentação (Esc)","Exit presentation (Esc)","Salir de la presentación (Esc)"],
+["Ação","Action","Acción"],["Criou","Created","Creó"],["Alterou","Changed","Modificó"],["Excluiu","Deleted","Eliminó"],["Delegou","Delegated","Delegó"],["Pessoa","Person","Persona"],["Buscar","Search","Buscar"],["Título ou detalhe…","Title or detail…","Título o detalle…"],
+["Histórico de alterações","Change history","Historial de cambios"],["Quem criou, alterou ou excluiu cada atividade, e quando.","Who created, changed or deleted each activity, and when.","Quién creó, modificó o eliminó cada actividad, y cuándo."],["Carregar mais","Load more","Cargar más"],["Dia","Day","Día"],["Definir metas","Set goals","Definir metas"],
+["Painel da equipe","Team dashboard","Panel del equipo"],["Lixeira","Trash","Papelera"],["Atividades excluídas ficam aqui por 30 dias, com anexos, e podem ser restauradas.","Deleted activities stay here for 30 days, with attachments, and can be restored.","Las actividades eliminadas quedan aquí 30 días, con adjuntos, y se pueden restaurar."],
+["Restaurar selecionadas","Restore selected","Restaurar seleccionadas"],["Esvaziar lixeira","Empty trash","Vaciar papelera"],["Restaurar","Restore","Restaurar"],["Apagar de vez","Delete forever","Eliminar definitivamente"],["A lixeira está vazia.","The trash is empty.","La papelera está vacía."],["Carregando…","Loading…","Cargando…"],["some hoje","goes away today","se borra hoy"],
+["Mês a mês","Month by month","Mes a mes"],["Atividades concluídas por mês, comparadas com o mesmo mês do ano anterior, e a tendência dos últimos 12 meses.","Activities done per month, compared with the same month last year, and the 12-month trend.","Actividades completadas por mes, comparadas con el mismo mes del año anterior, y la tendencia de los últimos 12 meses."],
+["De quem","Whose","De quién"],["Minhas","Mine","Mías"],["Medida","Measure","Medida"],["Horas","Hours","Horas"],["Este período","This period","Este período"],["Ano anterior","Previous year","Año anterior"],["Variação","Change","Variación"],["últimos 12 meses","last 12 months","últimos 12 meses"],["mesmo mês, ano anterior","same month, last year","mismo mes, año anterior"],["tendência","trend","tendencia"],["mês em andamento","month in progress","mes en curso"],
+["sem dados do ano anterior para comparar","no data from last year to compare","sin datos del año anterior para comparar"],["subindo","rising","subiendo"],["caindo","falling","bajando"],["estável","stable","estable"],["poucos dados","not enough data","pocos datos"],
+["Auditoria de tempo","Time audit","Auditoría de tiempo"],["Atividades concluídas em que o tempo real ficou muito acima do previsto.","Completed activities whose actual time was far above the plan.","Actividades completadas en las que el tiempo real quedó muy por encima de lo previsto."],
+["Acima de","Above","Por encima de"],["o dobro","2×","el doble"],["o triplo","3×","el triple"],["mim","me","mí"],["toda a equipe","whole team","todo el equipo"],["atividades acima do limite","activities above the limit","actividades por encima del límite"],["tempo além do previsto","time beyond the plan","tiempo por encima de lo previsto"],["Real ÷ previsto, por tipo","Actual ÷ planned, by type","Real ÷ previsto, por tipo"],["Previsto","Planned","Previsto"],["Real","Actual","Real"],["A mais","Extra","De más"],["Atividade","Activity","Actividad"],
+["Equipe hoje","Team today","Equipo hoy"],["Tela cheia","Full screen","Pantalla completa"],["Sair da tela cheia","Exit full screen","Salir de pantalla completa"],["Atualiza sozinho a cada minuto.","Refreshes every minute.","Se actualiza cada minuto."],["concluídas hoje","done today","completadas hoy"],["do dia","of the day","del día"],["em andamento","in progress","en curso"],["atrasadas","overdue","atrasadas"],["em foco","in focus","en enfoque"],["Tudo concluído ✓","All done ✓","Todo completado ✓"],["Sem atividades hoje","No activities today","Sin actividades hoy"],
+["Meu usuário","My user","Mi usuario"],["Exportar Excel","Export Excel","Exportar Excel"],["Salvar em PDF","Save as PDF","Guardar en PDF"],["Relatório de atividades","Activity report","Informe de actividades"],["Relatório","Report","Informe"],["Alterações","Changes","Cambios"],
+["Usuários","Users","Usuarios"],["Quem pode acessar o sistema. Cada usuário tem suas próprias atividades.","Who can access the system. Each user has their own activities.","Quién puede acceder al sistema. Cada usuario tiene sus propias actividades."],["+ Novo usuário","+ New user","+ Nuevo usuario"],["Novo usuário","New user","Nuevo usuario"],["Editar usuário","Edit user","Editar usuario"],
+["Buscar por nome, usuário ou cargo…","Search by name, username or role…","Buscar por nombre, usuario o cargo…"],["Buscar usuário","Search user","Buscar usuario"],["Sua sessão vai expirar por inatividade.","Your session will expire due to inactivity.","Tu sesión va a expirar por inactividad."],["Continuar conectado","Stay signed in","Seguir conectado"],
+["Navegação principal","Main navigation","Navegación principal"],["Busca","Search","Búsqueda"],["Menu","Menu","Menú"],["Fechar","Close","Cerrar"],["Instalar agora","Install now","Instalar ahora"],
+["Buscar atividade, tela ou ação…","Search activity, screen or action…","Buscar actividad, pantalla o acción…"],["navegar","navigate","navegar"],["abrir","open","abrir"],["abre de qualquer lugar","opens from anywhere","abre desde cualquier lugar"],
+["Ações em lote","Bulk actions","Acciones en lote"],["Marcar todas","Select all","Marcar todas"],["✓ Concluir","✓ Complete","✓ Completar"],["↺ Reabrir","↺ Reopen","↺ Reabrir"],["Mover para","Move to","Mover a"],["Excluir","Delete","Eliminar"],
+["Tema","Theme","Tema"],["Claro","Light","Claro"],["Escuro","Dark","Oscuro"],["Automático","Automatic","Automático"],["Cor de destaque","Accent color","Color de acento"],["Tamanho da letra","Text size","Tamaño de letra"],["Pequena","Small","Pequeña"],["Normal","Normal","Normal"],["Grande","Large","Grande"],
+["Densidade da lista","List density","Densidad de la lista"],["Confortável","Comfortable","Cómoda"],["Compacta","Compact","Compacta"],["Lembretes","Reminders","Recordatorios"],["Avisar antes de atividades com horário","Notify before timed activities","Avisar antes de actividades con horario"],["Antecedência","Notice","Antelación"],
+["1 hora","1 hour","1 hora"],["2 horas","2 hours","2 horas"],["Ver tutorial","See tutorial","Ver tutorial"],["Pronto","Done","Listo"],["Idioma","Language","Idioma"],
+["Verificação em duas etapas","Two-step verification","Verificación en dos pasos"],["Onde sua conta está conectada","Where your account is signed in","Dónde está conectada tu cuenta"],["Pular","Skip","Omitir"],["Voltar","Back","Volver"],
+["Buscar qualquer atividade, tela ou ação","Search any activity, screen or action","Buscar cualquier actividad, pantalla o acción"],["Ir para Visão geral","Go to Overview","Ir a Vista general"],["Ir para o Painel da equipe","Go to Team dashboard","Ir al Panel del equipo"],["Ir para Relatórios","Go to Reports","Ir a Informes"],["Ir para Gráficos","Go to Charts","Ir a Gráficos"],
+["Ir para o Histórico de alterações","Go to Change history","Ir al Historial de cambios"],["Ir para Usuários (administrador)","Go to Users (admin)","Ir a Usuarios (administrador)"],["Ir para Backups (administrador)","Go to Backups (admin)","Ir a Copias (administrador)"],["Alternar modo claro/escuro","Toggle light/dark mode","Cambiar modo claro/oscuro"],
+["Mostrar esta ajuda","Show this help","Mostrar esta ayuda"],["Fechar painéis e janelas","Close panels and dialogs","Cerrar paneles y ventanas"],["Os atalhos não funcionam enquanto você digita em um campo.","Shortcuts don't work while you type in a field.","Los atajos no funcionan mientras escribes en un campo."],
+["Metas da equipe","Team goals","Metas del equipo"],["Padrão por dia","Default per day","Predeterminado por día"],["Padrão por semana","Default per week","Predeterminado por semana"],["Metas individuais (opcional)","Individual goals (optional)","Metas individuales (opcional)"],["Por dia","Per day","Por día"],["Por semana","Per week","Por semana"],["Salvar metas","Save goals","Guardar metas"],
+["Nome completo","Full name","Nombre completo"],["Usuário (login)","Username (login)","Usuario (login)"],["Cargo","Role","Cargo"],["Perfil de acesso","Access profile","Perfil de acceso"],
+["Usuário: vê e edita só as próprias atividades","User: sees and edits only their own activities","Usuario: ve y edita solo sus actividades"],["Supervisor: também vê a equipe, os relatórios de todos e define metas","Supervisor: also sees the team, everyone's reports and sets goals","Supervisor: también ve el equipo, los informes de todos y define metas"],["Administrador: também gerencia usuários e backups","Administrator: also manages users and backups","Administrador: también gestiona usuarios y copias"],
+["Permissões","Permissions","Permisos"],["Usar o padrão do perfil","Use the profile default","Usar el predeterminado del perfil"],["O administrador sempre tem todas.","Administrators always have all of them.","El administrador siempre tiene todos."],
+["Ver o painel e os relatórios da equipe","See the team dashboard and reports","Ver el panel y los informes del equipo"],["Definir as metas","Set the goals","Definir las metas"],["Exportar relatórios (Excel, PDF e CSV)","Export reports (Excel, PDF and CSV)","Exportar informes (Excel, PDF y CSV)"],["Ver as alterações feitas pela equipe","See changes made by the team","Ver los cambios hechos por el equipo"],["Abrir o painel para TV","Open the TV dashboard","Abrir el panel para TV"],
+["Senha provisória","Temporary password","Contraseña provisional"],["Ocultar","Hide","Ocultar"],["Mostrar","Show","Mostrar"],["Gerar","Generate","Generar"],["Salvar","Save","Guardar"],["Salvar alterações","Save changes","Guardar cambios"],["Criar usuário","Create user","Crear usuario"],["Redefinir senha","Reset password","Restablecer contraseña"],
+["Ex.: Treinamento com DR tal","E.g.: Training with Dr. Smith","Ej.: Capacitación con el Dr. Pérez"],["Descrição","Description","Descripción"],["Com quem / sistema","With whom / system","Con quién / sistema"],["Hora","Time","Hora"],["Duração (min)","Duration (min)","Duración (min)"],
+["Pendente","Pending","Pendiente"],["Concluída","Done","Completada"],["Tempo real gasto (min)","Actual time spent (min)","Tiempo real empleado (min)"],["Fixar no topo da lista do dia","Pin to the top of the day","Fijar arriba en la lista del día"],
+["Prazo (data)","Deadline (date)","Plazo (fecha)"],["Hora do prazo","Deadline time","Hora del plazo"],["Sem prazo","No deadline","Sin plazo"],["Etiquetas","Tags","Etiquetas"],["Digite e pressione Enter","Type and press Enter","Escribe y pulsa Enter"],["Subtarefas","Subtasks","Subtareas"],
+["Nova subtarefa — Enter para adicionar","New subtask — Enter to add","Nueva subtarea — Enter para agregar"],["Anexos","Attachments","Adjuntos"],["＋ Anexar arquivo","＋ Attach file","＋ Adjuntar archivo"],["ou cole um print com Ctrl+V · até 10 MB cada","or paste a screenshot with Ctrl+V · up to 10 MB each","o pega una captura con Ctrl+V · hasta 10 MB cada una"],
+["Passar esta atividade para outra pessoa","Hand this activity to someone else","Pasar esta actividad a otra persona"],["↪ Delegar","↪ Delegate","↪ Delegar"],["Delegar","Delegate","Delegar"],["Delegar…","Delegate…","Delegar…"],["Delegar para…","Delegate to…","Delegar a…"],["Delegar atividade","Delegate activity","Delegar actividad"],
+["Sugestões","Suggestions","Sugerencias"],["Arraste para um horário ou clique em","Drag to a time slot or click","Arrastra a un horario o haz clic en"],["Abrir sozinho na primeira visita da manhã","Open automatically on the first morning visit","Abrir solo en la primera visita de la mañana"],["livre","free","libre"],["ocupado","busy","ocupado"],["Tudo organizado. 👌","All organized. 👌","Todo organizado. 👌"],["Hoje, sem horário","Today, no time","Hoy, sin horario"],["Amanhã, prioridade alta","Tomorrow, high priority","Mañana, prioridad alta"],
+["Resumo do dia","Day summary","Resumen del día"],["Passar pendentes para o próximo dia útil","Move pending to the next business day","Pasar pendientes al próximo día hábil"],["concluídas","done","completadas"],["tempo gasto","time spent","tiempo empleado"],["previsto (concluídas)","planned (done)","previsto (completadas)"],["ficaram pendentes","still pending","quedaron pendientes"],["Ficaram para depois","Left for later","Quedaron para después"],["sem horário","no time","sin horario"],
+["Dia fechado. Tudo concluído! 🎉","Day closed. All done! 🎉","Día cerrado. ¡Todo completado! 🎉"],["Nenhuma atividade concluída nesta data.","No activities done on this date.","Ninguna actividad completada en esta fecha."],
+["A equipe vê que você está em foco. Avisos de delegação ficam para depois.","The team sees you are focusing. Delegation notices wait until later.","El equipo ve que estás en enfoque. Los avisos de delegación quedan para después."],["Duração","Duration","Duración"],["No que você está trabalhando? (opcional)","What are you working on? (optional)","¿En qué estás trabajando? (opcional)"],["Ex.: relatório mensal","E.g.: monthly report","Ej.: informe mensual"],["Ligar","Turn on","Activar"],
+["Clique no campo e aperte a tecla desejada (uma letra ou número). Deixe vazio para desligar.","Click the field and press the key you want (a letter or number). Leave empty to turn off.","Haz clic en el campo y pulsa la tecla deseada (una letra o número). Déjalo vacío para desactivar."],["Voltar ao padrão","Restore defaults","Volver al predeterminado"],
+["Para quem","To whom","Para quién"],["Recado (opcional)","Note (optional)","Nota (opcional)"],["Ex.: o cliente pediu retorno até sexta","E.g.: the client asked for a reply by Friday","Ej.: el cliente pidió respuesta hasta el viernes"],
+["A atividade sai da sua lista e vai para a pessoa escolhida, com subtarefas, anexos e tempo gasto. Fica registrado no Histórico.","The activity leaves your list and goes to the chosen person, with subtasks, attachments and time spent. It is recorded in History.","La actividad sale de tu lista y va a la persona elegida, con subtareas, adjuntos y tiempo empleado. Queda registrado en el Historial."],
+["Escolha a pessoa","Choose the person","Elige la persona"],
+["Senha atual","Current password","Contraseña actual"],["Nova senha (mínimo 8 caracteres, sem seu usuário nem palavras óbvias como “senha”)","New password (at least 8 characters, without your username or obvious words like “password”)","Nueva contraseña (mínimo 8 caracteres, sin tu usuario ni palabras obvias como “contraseña”)"],["Repita a nova senha","Repeat the new password","Repite la nueva contraseña"],["Salvar senha","Save password","Guardar contraseña"],
+// telas e abas
+["Visão do dia","Day view","Vista del día"],["Foco","Focus","Enfoque"],["Painel para TV","TV dashboard","Panel para TV"],["Saúde e acessos","Health and sign-ins","Salud y accesos"],["Meus relatórios","My reports","Mis informes"],["Importar dados","Import data","Importar datos"],
+// blocos do Hoje
+["Agora","Now","Ahora"],["Próximas","Up next","Próximas"],["Programadas","Scheduled","Programadas"],["em andamento ou no horário","in progress or scheduled now","en curso o en su horario"],["ainda hoje","later today","más tarde hoy"],["de outros dias, em aberto","from other days, still open","de otros días, abiertas"],
+["Nada em andamento. Clique em ▶ Iniciar numa atividade.","Nothing in progress. Click ▶ Start on an activity.","Nada en curso. Haz clic en ▶ Iniciar en una actividad."],["Nada mais programado para hoje. 🎉","Nothing else scheduled today. 🎉","Nada más programado para hoy. 🎉"],["Nada programado.","Nothing scheduled.","Nada programado."],
+// linha da atividade
+["pendente","pending","pendiente"],["concluída","done","completada"],["Editar","Edit","Editar"],["Fixar no topo","Pin to top","Fijar arriba"],["Desafixar","Unpin","Desfijar"],["Duplicar","Duplicate","Duplicar"],["▶ Iniciar","▶ Start","▶ Iniciar"],
+["Marcar como concluída","Mark as done","Marcar como completada"],["Mudar situação","Change status","Cambiar estado"],["Mais ações","More actions","Más acciones"],["Iniciar o cronômetro","Start the timer","Iniciar el cronómetro"],["Parar o cronômetro","Stop the timer","Detener el cronómetro"],["Ver anexos","See attachments","Ver adjuntos"],["Fixada no topo","Pinned to top","Fijada arriba"],["Mostrar subtarefas","Show subtasks","Mostrar subtareas"],["Prazo (SLA)","Deadline (SLA)","Plazo (SLA)"],
+["Treinamento","Training","Capacitación"],["Suporte","Support","Soporte"],["Reunião","Meeting","Reunión"],["Desenvolvimento","Development","Desarrollo"],["Documentação","Documentation","Documentación"],["Importação","Import","Importación"],
+// cartoes do dia
+["Foco estimado","Planned focus","Enfoque estimado"],["tempo planejado","planned time","tiempo planificado"],["bom ritmo até aqui","good pace so far","buen ritmo hasta ahora"],["nenhuma ainda","none yet","ninguna aún"],["dia fechado","day closed","día cerrado"],["acima da metade","over halfway","más de la mitad"],["na metade","halfway","a la mitad"],["vamos começar","let's start","empecemos"],
+["Tudo em dia por aqui.","All caught up here.","Todo al día por aquí."],["Nenhuma atividade pendente nesta data.","No pending activities on this date.","Ninguna actividad pendiente en esta fecha."],["Concluir agora","Complete now","Completar ahora"],["Começar agora","Start now","Empezar ahora"],["✦ Próximo passo","✦ Next step","✦ Próximo paso"],
+// avisos
+["Desfazer","Undo","Deshacer"],["Atividade criada","Activity created","Actividad creada"],["Atividade excluída","Activity deleted","Actividad eliminada"],["Atividade concluída","Activity completed","Actividad completada"],["Atividade reaberta","Activity reopened","Actividad reabierta"],["Atividade alterada","Activity changed","Actividad modificada"],["Atividade duplicada","Activity duplicated","Actividad duplicada"],["Atividade iniciada","Activity started","Actividad iniciada"],["Nada para desfazer.","Nothing to undo.","Nada para deshacer."],
+["Não perturbe encerrado.","Do not disturb ended.","No molestar terminado."],["Nenhuma atividade atrasada.","No overdue activities.","Ninguna actividad atrasada."],["Nada pendente hoje.","Nothing pending today.","Nada pendiente hoy."],["Marque as atividades que quer restaurar.","Select the activities to restore.","Marca las actividades que quieres restaurar."],
+["Ver resumo","See summary","Ver resumen"],["Enviando as alterações feitas sem conexão…","Sending changes made while offline…","Enviando los cambios hechos sin conexión…"],["Usuário ou senha inválidos.","Invalid username or password.","Usuario o contraseña inválidos."],
+["Mover para amanhã","Move to tomorrow","Mover a mañana"],["Mover para hoje","Move to today","Mover a hoy"],["Concluir","Complete","Completar"],["Reabrir","Reopen","Reabrir"],["Telas e ações","Screens and actions","Pantallas y acciones"],
+["Mover atrasadas para hoje","Move overdue to today","Mover atrasadas a hoy"],["Passar pendentes de hoje para o próximo dia útil","Move today's pending to the next business day","Pasar pendientes de hoy al próximo día hábil"],["Adicionar ao checklist","Add to checklist","Agregar al checklist"],["Criação rápida por texto","Quick add by text","Creación rápida por texto"],["Criação rápida (Hoje)","Quick add (Today)","Creación rápida (Hoy)"],
+["Buscar qualquer coisa (Ctrl+K)","Search anything (Ctrl+K)","Buscar cualquier cosa (Ctrl+K)"],["Ir para Hoje","Go to Today","Ir a Hoy"],["Modo claro/escuro","Light/dark mode","Modo claro/oscuro"],["Abrir a lixeira","Open the trash","Abrir la papelera"],["Ver atrasadas","See overdue","Ver atrasadas"],["Sair do sistema","Sign out","Salir del sistema"],["Exportar atividades (CSV)","Export activities (CSV)","Exportar actividades (CSV)"],
+["30min (padrão)","30min (default)","30min (predeterminado)"],["digite o nome da atividade","type the activity name","escribe el nombre de la actividad"],
+["Português","Português","Português"],["English","English","English"],["Español","Español","Español"]
+];
+var D={},REV={};T.forEach(function(t){D[t[0]]=t[1+I];if(!(t[1+I] in REV))REV[t[1+I]]=t[0]});
+var DIAS={hoje:["today","hoy"],amanhã:["tomorrow","mañana"],ontem:["yesterday","ayer"]};
+function d(x){return D[x]||x}
+function dia(x){return DIAS[x]?DIAS[x][I]:x}
+// frases com partes variaveis: [regex, ingles, espanhol]
+var P=[
+[/^(Bom dia|Boa tarde|Boa noite)(, .+)?\.$/,function(m){return ({"Bom dia":["Good morning","Buenos días"],"Boa tarde":["Good afternoon","Buenas tardes"],"Boa noite":["Good evening","Buenas noches"]})[m[1]][I]+(m[2]||"")+"."}],
+[/^(\d+) selecionadas?$/,["$1 selected","$1 seleccionadas"]],
+[/^(\d+) de (\d+) entregas concluídas\.$/,["$1 of $2 deliveries done.","$1 de $2 entregas completadas."]],
+[/^(\d+) em andamento$/,["$1 in progress","$1 en curso"]],
+[/^Desfeito: (.+)$/,function(m){return (I?"Deshecho: ":"Undone: ")+m[1]}],
+[/^Situação: (.+)$/,function(m){return (I?"Estado: ":"Status: ")+d(m[1])}],
+[/^(TRE|IMP|SUP|REU|DEV|DOC) · (.+)$/,function(m){return m[1]+" · "+d(m[2])}],
+[/^Começa em (\d+) min: (.+)$/,["Starts in $1 min: $2","Empieza en $1 min: $2"]],
+[/^🔔 Começa em (\d+) min: (.+)$/,["🔔 Starts in $1 min: $2","🔔 Empieza en $1 min: $2"]],
+[/^🔕 Em foco até (.+)$/,["🔕 Focusing until $1","🔕 En enfoque hasta $1"]],
+[/^Não perturbe ligado por (.+)\.$/,["Do not disturb on for $1.","No molestar activado por $1."]],
+[/^Atividade delegada para (.+)\.$/,["Activity delegated to $1.","Actividad delegada a $1."]],
+[/^↪ de (.+)$/,["↪ from $1","↪ de $1"]],
+[/^some em (\d+) dias?$/,["goes away in $1 day(s)","se borra en $1 día(s)"]],
+[/^(\d+) atrasadas?$/,["$1 overdue","$1 atrasada(s)"]],
+[/^Atrasada desde (.+)$/,["Overdue since $1","Atrasada desde $1"]],
+[/^Prazo (\d\d\/\d\d)$/,["Deadline $1","Plazo $1"]],
+[/^Próxima: (.+)$/,["Next: $1","Próxima: $1"]],
+[/^Atualizado às (\S+) · atualiza sozinho a cada minuto\.$/,["Updated at $1 · refreshes every minute.","Actualizado a las $1 · se actualiza cada minuto."]],
+[/^Bom trabalho! Faltaram (\d+)\.$/,["Good job! $1 left.","¡Buen trabajo! Faltaron $1."]],
+[/^Passar (\d+) pendentes? para (.+)$/,function(m){return (I?"Pasar "+m[1]+" pendiente(s) a ":"Move "+m[1]+" pending to ")+dia(m[2])}],
+[/^Resumo de (.+)$/,["Summary of $1","Resumen de $1"]],
+[/^📅 (.+)$/,function(m){return "📅 "+dia(m[1])}],
+[/^prioridade (.+)$/,function(m){return (I?"prioridad ":"priority ")+d(m[1].replace(/^./,function(c){return c.toUpperCase()})).toLowerCase()}],
+[/^Prioridade (alta|media|baixa)$/,function(m){return (I?"Prioridad ":"Priority ")+d({alta:"Alta",media:"Média",baixa:"Baixa"}[m[1]]).toLowerCase()}],
+[/^Criada para (.+)$/,["Created for $1","Creada para $1"]],
+[/^desde (.+)$/,["since $1","desde $1"]],
+[/^(\d+) atividades? restaurada(s)?\.$/,["$1 activity(ies) restored.","$1 actividad(es) restaurada(s)."]],
+[/^Fim do expediente\? (.+)$/,function(m){return (I?"¿Fin de la jornada? ":"End of the workday? ")+m[1].replace(/^(\d+) atividade\(s\) ainda em aberto hoje\.$/,I?"$1 actividad(es) aún abiertas hoy.":"$1 activity(ies) still open today.").replace("Tudo concluído hoje!",I?"¡Todo completado hoy!":"All done today!")}],
+[/^Ações em “(.+)”$/,["Actions on “$1”","Acciones en “$1”"]],
+[/^Buscar “(.+)” na Busca geral$/,["Search “$1” in Global search","Buscar “$1” en la Búsqueda general"]],
+[/^(.+) delegou “(.+)” para você\.(.*)$/,function(m){return m[1]+(I?" te delegó “":" delegated “")+m[2]+(I?"”.":"” to you.")+m[3].replace(" Recado:",I?" Nota:":" Note:")}],
+[/^(\d+) atividades foram delegadas para você\.$/,["$1 activities were delegated to you.","Te delegaron $1 actividades."]],
+[/^⏰ prazo (.+?)( · vencido| · fora do prazo| ✓| · vence em (.+))?$/,function(m){var a=I?"⏰ plazo ":"⏰ due ",r=m[2]||"";
+  if(r===" · vencido")r=I?" · vencido":" · overdue";else if(r===" · fora do prazo")r=I?" · fuera de plazo":" · late";else if(m[3])r=(I?" · vence en ":" · due in ")+m[3];return a+m[1]+r}]
+];
+var PULA={SCRIPT:1,STYLE:1,TEXTAREA:1,CODE:1,KBD:1};
+var DADOS=".logo,.tt,.bd p,.who,.etq,#ckL span,.plsug b,.lxl b,.rsl li,.tvc header b,.tva,.uMNome,#uMNome,.un b,.qap b,.cmdl li b,td";
+function trTxt(s){
+  var k=s.trim();if(!k||k.length>400)return null;
+  if(D[k]!==undefined)return D[k]===k?null:s.replace(k,D[k]);
+  for(var i=0;i<P.length;i++){var m=k.match(P[i][0]);if(m){var r=typeof P[i][1]==="function"?P[i][1](m):k.replace(P[i][0],P[i][1][I]);return r===k?null:s.replace(k,r)}}
+  return null}
+function noDado(el){return el&&el.closest&&el.closest(DADOS)}
+function trNo(n){
+  if(n.nodeType===3){var p=n.parentNode;if(!p||PULA[p.nodeName]||noDado(p))return;var r=trTxt(n.nodeValue);if(r!==null&&r!==n.nodeValue)n.nodeValue=r;return}
+  if(n.nodeType!==1||PULA[n.nodeName])return;
+  ["placeholder","title","aria-label"].forEach(function(a){var v=n.getAttribute(a);if(v){var r=trTxt(v);if(r!==null&&r!==v)n.setAttribute(a,r)}});
+  if(n.nodeName==="OPTION"||n.nodeName==="BUTTON"||!noDado(n))for(var c=n.firstChild;c;c=c.nextSibling)trNo(c)}
+function tudo(){trNo(document.body);document.title=document.title.replace("Suporte - Controle de Atividades",D["Suporte · Controle de atividades"]||document.title)}
+new MutationObserver(function(ms){ms.forEach(function(m){
+  if(m.type==="characterData")trNo(m.target);
+  else if(m.type==="attributes")trNo(m.target);
+  else m.addedNodes.forEach(trNo)})}).observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["placeholder","title","aria-label"]});
+tudo();
+window.addEventListener("load",tudo);
+window.I18N={t:function(s){var r=trTxt(s);return r===null?s:r},pt:function(s){return REV[s]||s}};
+})();

@@ -1,4 +1,17 @@
 [
+  {"versao": "3.5.0", "data": "2026-11-14", "titulo": "Dia a dia, relatórios novos, offline e idiomas",
+   "itens": [
+     "Hoje em blocos (Agora, Próximas, Atrasadas), linha da atividade mais limpa e criação rápida digitando (ex.: “reunião amanhã 14h 30min #urgente @Maria”).",
+     "Planejar o dia (sugestões para arrastar na agenda), Resumo do fim do dia com “passar pendentes para o próximo dia útil”, checklist rápido e Não perturbe.",
+     "Lembretes com antecedência à escolha, atalhos de teclado personalizáveis e novos comandos no Ctrl+K.",
+     "Lixeira: atividades excluídas ficam 30 dias, com anexos, e podem ser restauradas.",
+     "Painel para TV, comparação mês a mês e ano a ano com tendência, auditoria de tempo e Excel com gráficos prontos.",
+     "Permissões por usuário (ver equipe, metas, exportar, alterações, TV).",
+     "Modo offline: sem conexão, continua funcionando e envia as alterações quando a rede volta.",
+     "Sistema em inglês e espanhol (Aparência → Idioma ou na tela de login).",
+     "Nova tela de login, formulário que sobe de baixo no celular e deslizar para a esquerda para delegar.",
+     "Serviço do Windows (instalar-servico.bat), cópia do backup para outra pasta (BACKUP_COPIA) e testes automáticos no GitHub."
+   ]},
   {"versao": "3.4.0", "data": "2026-11-14", "titulo": "Delegar atividades",
    "itens": [
      "Delegar: no formulário da atividade (botão ↪ Delegar) ou no menu ⋯ da linha, escolha a pessoa e deixe um recado opcional.",

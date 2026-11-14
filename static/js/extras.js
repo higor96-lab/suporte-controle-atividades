@@ -54,20 +54,24 @@ blkRender();
 setInterval(function(){if(!document.hidden&&S.view()==="visao")blkRender()},60000);
 
 // ================= criacao rapida por texto =================
-var DIAS={domingo:0,segunda:1,"segunda-feira":1,terca:2,"terca-feira":2,quarta:3,"quarta-feira":3,quinta:4,"quinta-feira":4,sexta:5,"sexta-feira":5,sabado:6};
+var DIAS={domingo:0,segunda:1,"segunda-feira":1,terca:2,"terca-feira":2,quarta:3,"quarta-feira":3,quinta:4,"quinta-feira":4,sexta:5,"sexta-feira":5,sabado:6,
+  sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,lunes:1,martes:2,miercoles:3,jueves:4,viernes:5};
 var CURTO={dom:0,seg:1,ter:2,qua:3,qui:4,sex:5,sab:6};
 var CATW=[[/reuni|alinhament|daily|call\b/,"REU"],[/treina|capacit|curso/,"TRE"],[/import|carga|planilha/,"IMP"],[/document|manual|relatorio|procedimento/,"DOC"],[/desenvolv|ajuste|corrig|script|codigo|deploy|bug/,"DEV"],[/suporte|atend|chamado|instal|config|impressora|acesso|senha|rede/,"SUP"]];
 function parse(txt){
   var tk=String(txt||"").trim().split(/\s+/).filter(Boolean),out={tags:[],who:"",date:"",time:"",dur:0,prio:"",cat:""},resto=[],h=hoje();
-  var LIG={"as":1,"às":1,"a":0,"em":1,"no":1,"na":1,"dia":1,"por":1,"durante":1,"de":0,"proxima":1,"próxima":1,"proximo":1,"próximo":1};
-  function liga(){while(resto.length&&LIG[nrm(resto[resto.length-1])]===1)resto.pop()}
+  var LIG={"as":1,"às":1,"a":0,"em":1,"no":1,"na":1,"dia":1,"por":1,"durante":1,"de":0,"proxima":1,"próxima":1,"proximo":1,"próximo":1,"at":1,"on":1,"for":1,"next":1,"el":1,"las":1,"para":0};
+  function liga(){var tirou="";while(resto.length&&LIG[nrm(resto[resto.length-1])]===1)tirou=nrm(resto.pop());
+    if(tirou==="las"&&resto.length&&nrm(resto[resto.length-1])==="a")resto.pop()}  // "a las 10"
   for(var k=0;k<tk.length;k++){
     var t=tk[k],n=nrm(t).replace(/[.,;]$/,""),m,ant=k?nrm(tk[k-1]):"";
     if(/^#[^\s#]{1,24}$/.test(t)){out.tags.push(t.slice(1).toLowerCase().replace(/[.,;]$/,""));continue}
     if(/^@\S{1,60}$/.test(t)){out.who=t.slice(1).replace(/_/g," ").replace(/[.,;]$/,"");continue}
     if(/^!(alta|media|média|baixa)$/.test(n)){out.prio=n.slice(1).replace("é","e");continue}
     if(!out.date){
-      if(n==="hoje"){out.date=h;liga();continue}
+      if(n==="hoje"||n==="today"||n==="hoy"){out.date=h;liga();continue}
+      if(n==="tomorrow"||(n==="manana"&&ant!=="pasado")){out.date=addDias(h,1);liga();continue}
+      if(n==="manana"&&ant==="pasado"){resto.pop();out.date=addDias(h,2);liga();continue}
       if(n==="amanha"){if(nrm(resto[resto.length-1]||"")==="de"&&nrm(resto[resto.length-2]||"")==="depois"){resto.splice(-2,2);out.date=addDias(h,2)}else out.date=addDias(h,1);liga();continue}
       var wd=DIAS[n];if(wd===undefined&&CURTO[n]!==undefined&&/^(na|no|dia|proxima|proximo)$/.test(ant))wd=CURTO[n];
       if(wd!==undefined){var dd=new Date(),dif=(wd-dd.getDay()+7)%7||7;out.date=addDias(h,dif);liga();continue}
@@ -77,8 +81,8 @@ function parse(txt){
     // duracao: 30min, 45m, 1h30min, ou 2h / 1h30 depois que o horario ja foi achado (ou com "por"/"durante")
     if((m=n.match(/^(\d{1,3})\s?(min|mins|minutos|m)$/))){out.dur=+m[1];liga();continue}
     if((m=n.match(/^(\d{1,2})h(\d{1,2})min$/))){out.dur=+m[1]*60+(+m[2]);liga();continue}
-    if((m=n.match(/^(\d{1,2})h(\d{2})?$/))&&(out.time||ant==="por"||ant==="durante")){out.dur=+m[1]*60+(+m[2]||0);liga();continue}
-    if(!out.time&&((m=n.match(/^(\d{1,2})(?:h|:)(\d{2})?h?$/))||((ant==="as"||ant==="às")&&(m=n.match(/^(\d{1,2})$/))))){
+    if((m=n.match(/^(\d{1,2})h(\d{2})?$/))&&(out.time||ant==="por"||ant==="durante"||ant==="for")){out.dur=+m[1]*60+(+m[2]||0);liga();continue}
+    if(!out.time&&((m=n.match(/^(\d{1,2})(?:h|:)(\d{2})?h?$/))||((ant==="as"||ant==="às"||ant==="at"||ant==="las")&&(m=n.match(/^(\d{1,2})$/))))){
       if(+m[1]<=23&&(+m[2]||0)<=59){out.time=("0"+m[1]).slice(-2)+":"+("0"+(+m[2]||0)).slice(-2);liga();continue}}
     if(n==="horas"||n==="hora")continue;
     resto.push(t)}

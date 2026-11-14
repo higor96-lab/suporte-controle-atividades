@@ -17,7 +17,11 @@
       else if(step2){$("lc").value="";$("lc").focus()}else{$("lp").value="";$("lp").focus()}})
     .catch(function(){m.textContent="Não foi possível conectar ao servidor."}).then(function(){b.disabled=false});
   });
-  $("logout").addEventListener("click",function(){fetch("/api/logout",{method:"POST",headers:H,credentials:"same-origin"}).then(function(){location.reload()})});
+  $("logout").addEventListener("click",function(){
+    var c=null;try{c=JSON.parse(localStorage.getItem("atvCache"+(window.ME&&window.ME.id))||"null")}catch(e){}
+    if(window.OFFLINE&&c&&c.pend&&!confirm("Há alterações feitas sem conexão que ainda não foram enviadas. Se sair agora, elas serão perdidas. Sair mesmo assim?"))return;
+    try{Object.keys(localStorage).forEach(function(k){if(/^(atvCache|meCache)/.test(k))localStorage.removeItem(k)})}catch(e){}
+    fetch("/api/logout",{method:"POST",headers:H,credentials:"same-origin"}).then(function(){location.reload()}).catch(function(){location.reload()})});
   // ---- modo demonstracao (servidor com DEMO=1)
   function aviso(h){var d=document.createElement("div");d.className="demob";d.setAttribute("role","note");d.innerHTML=h;return d}
   if(!ME){fetch("/api/demo",{credentials:"same-origin"}).then(function(r){return r.json()}).then(function(d){if(!d.demo)return;

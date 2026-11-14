@@ -28,8 +28,10 @@
     <p class="lead" style="margin:6px 0 0;font-size:13px">Digite o código de 6 dígitos do aplicativo autenticador ou um código de recuperação.</p></div>
     <p id="le" role="alert"></p>
     <button class="btn dark" id="lb">Entrar</button>
+    <div class="lidioma" id="lIdioma" role="group" aria-label="Idioma"><button type="button" data-lang="pt">Português</button><button type="button" data-lang="en">English</button><button type="button" data-lang="es">Español</button></div>
   </form></div>
 </div>
+<div id="offB" class="offb" role="status" hidden>Sem conexão com o servidor. Você pode continuar trabalhando: as alterações ficam guardadas neste computador e são enviadas sozinhas quando a conexão voltar. <small>Se a rede está normal, aperte Ctrl+Shift+R (o certificado do servidor pode ter sido renovado).</small></div>
 <div class="app">
   <header class="hd">
     <button id="burger" aria-label="Abrir ou fechar menu">☰</button>
@@ -364,6 +366,7 @@
 <dialog id="gDrill" class="drawer" aria-labelledby="gDrT"><div class="drh"><h2 id="gDrT">Atividades</h2><button class="btn sm" id="gDrCsv" type="button">Exportar CSV</button><button class="btn sm" id="gDrX" type="button" aria-label="Fechar">✕</button></div><div class="drb"><ul class="drl" id="gDrL"></ul></div></dialog>
 <dialog id="apDlg"><h2 style="margin:0 0 14px">Aparência e preferências</h2>
   <div class="apg">
+    <div><b>Idioma</b><div class="seg" id="apIdioma" role="group" aria-label="Idioma"><button type="button" data-lang="pt">Português</button><button type="button" data-lang="en">English</button><button type="button" data-lang="es">Español</button></div></div>
     <div><b>Tema</b><div class="seg" id="apTema" role="group"><button data-v="light">Claro</button><button data-v="dark">Escuro</button><button data-v="auto">Automático</button></div></div>
     <div><b>Cor de destaque</b><div class="swatches" id="apCor"></div></div>
     <div><b>Tamanho da letra</b><div class="seg" id="apFonte" role="group"><button data-v="p">Pequena</button><button data-v="m">Normal</button><button data-v="g">Grande</button></div></div>
@@ -483,6 +486,7 @@
   <p id="pwm" role="alert" style="color:var(--danger);margin:0;min-height:1em"></p>
   <div class="rf"><button class="btn dark">Salvar senha</button><button type="button" class="btn" id="pwc">Cancelar</button></div>
 </form></div>
+<script src="/static/js/i18n.js"></script>
 <script src="/static/js/app.js"></script>
 <script src="/static/js/graficos.js"></script>
 <script src="/static/js/telas.js"></script>

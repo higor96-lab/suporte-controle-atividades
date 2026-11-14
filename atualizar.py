@@ -13,7 +13,7 @@ import zipfile
 from flask import jsonify, request
 
 EXT_OK = {".py", ".txt", ".md", ".json", ".js", ".html", ".css", ".webmanifest", ".png", ".woff2", ".ico", ".svg"}
-IGNORA_DIRS = {"__pycache__", "backups", "certs", "anexos", "atualizacoes", "versoes_anteriores", ".venv", "venv", ".git"}
+IGNORA_DIRS = {"__pycache__", "backups", "certs", "anexos", "atualizacoes", "versoes_anteriores", ".venv", "venv", ".git", "logs"}
 MANTER_VERSOES = 3  # quantas copias do codigo anterior guardar para "desfazer"
 IGNORA_ARQ = {"data.db", "secret.key", "iniciar.bat", "config.bat"}  # config.bat (e iniciar.bat antigo) guardam IP/porta
 MAX_ARQ, MAX_BYTES = 600, 80 * 1024 * 1024

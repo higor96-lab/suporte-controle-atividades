@@ -202,3 +202,19 @@ body.tvmode main{padding:0!important;max-width:none!important}
 }
 @keyframes shUp{from{transform:translateY(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){dialog#dlg[open]{animation:none!important}}
+
+/* ---------- modo offline ---------- */
+.offb{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:200;max-width:min(760px,calc(100vw - 32px));background:#4a3a14;color:#ffe9b0;border-radius:12px;padding:10px 16px;font-size:13.5px;box-shadow:0 10px 26px rgba(0,0,0,.3)}
+.offb small{display:block;opacity:.8;margin-top:2px}
+.offb[hidden]{display:none}
+body.locked .offb{display:none}
+@media (max-width:640px){.offb{bottom:76px}}
+
+/* ---------- idioma ---------- */
+.lidioma{display:flex;justify-content:center;gap:4px;margin:16px 28px 0}
+.lidioma button{border:0;background:none;color:var(--muted);font-size:12.5px;padding:4px 8px;border-radius:6px;cursor:pointer}
+.lidioma button[aria-pressed="true"]{color:var(--ink);font-weight:700;background:var(--soft)}
+html[lang="en"] #lf .lh b::before{content:"Sign in"}
+html[lang="en"] .bk-ok summary::after{content:"show"}html[lang="en"] .bk-ok[open] summary::after{content:"hide"}
+html[lang="es"] .bk-ok summary::after{content:"mostrar"}html[lang="es"] .bk-ok[open] summary::after{content:"ocultar"}
+html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.atr .tt::after{content:"atrasada"}

@@ -56,6 +56,28 @@ Menu *Dados → Importar dados*:
 3. O sistema mostra uma **prévia** com as linhas válidas e os erros (por exemplo, data inválida). Atividades que já existem (mesma data, hora e título) são ignoradas por padrão.
 4. Confirme em **Importar**. Limite: 2000 linhas e 6 MB por arquivo. O importador por CSV continua disponível em "avançado".
 
+## Novidades da versão 3.5
+
+**Dia a dia**
+- **Hoje** mostra três blocos: *Agora*, *Próximas* e *Atrasadas* (os modos Lista e Linha do tempo continuam lá).
+- **Criação rápida**: digite `reunião com financeiro amanhã 14h 30min #urgente @Maria` e aperte Enter.
+  Entende hoje/amanhã/depois de amanhã, dias da semana, `dd/mm`, horário, duração, `#etiqueta`, `@pessoa` e `!alta`.
+- **Planejar o dia** (tecla P), **Resumo do fim do dia** (tecla E), **checklist rápido** e **Não perturbe** (menu da conta).
+- Lembretes com antecedência à escolha e **atalhos personalizáveis** (menu da conta → Personalizar atalhos).
+
+**Relatórios**: **Mês a mês** (com o ano anterior e a tendência), **Auditoria de tempo**, **Painel para TV** e Excel com aba de gráficos.
+
+**Sistema**
+- **Lixeira** (Atividades → Lixeira): excluídas ficam 30 dias.
+- **Permissões por usuário**: Usuários → Editar → Permissões.
+- **Modo offline**: sem rede, o sistema abre com a última cópia e envia as alterações quando a conexão voltar.
+- **Idiomas**: português, inglês e espanhol (Aparência → Idioma).
+- **Rodar como serviço do Windows**: clique com o botão direito em `instalar-servico.bat` → *Executar como administrador*.
+  O sistema passa a subir sozinho com o computador e a reiniciar se cair (registro em `logs\servico.log`).
+  Para voltar ao jeito antigo: `remover-servico.bat`.
+- **Cópia do backup em outra pasta**: `set BACKUP_COPIA=\\servidor\pasta` no `config.bat`. Se a cópia falhar, o administrador é avisado.
+- **Testes automáticos**: `python tests/rodar.py` (rodam também no GitHub a cada envio).
+
 ## Novidades da versão 3.4 (delegar)
 
 - **Delegar atividade:** no formulário (botão **↪ Delegar**) ou no menu **⋯** da linha. Escolha a pessoa e, se quiser, deixe um recado.

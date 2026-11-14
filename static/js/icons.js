@@ -23,6 +23,7 @@
   function icon(d){var s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("viewBox","0 0 24 24");s.setAttribute("class","mi");s.setAttribute("fill","none");s.setAttribute("stroke","currentColor");s.setAttribute("stroke-width","2");s.setAttribute("stroke-linecap","round");s.setAttribute("stroke-linejoin","round");s.setAttribute("aria-hidden","true");var p=document.createElementNS("http://www.w3.org/2000/svg","path");p.setAttribute("d",d);s.appendChild(p);return s}
   try{document.querySelectorAll("#nav summary, #nav a, #nav .lk").forEach(function(el){
     var t=(el.firstChild&&el.firstChild.nodeType===3?el.firstChild.textContent:el.textContent).trim();
+    if(window.I18N&&window.I18N.pt)t=window.I18N.pt(t);  // tela em outro idioma: procura pelo nome em portugues
     if(P[t])el.insertBefore(icon(P[t]),el.firstChild);
   })}catch(e){}
 })();

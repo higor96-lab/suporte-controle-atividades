@@ -1,7 +1,14 @@
 // Interface principal: atividades, telas, relatorios, administracao
 (function(){
 function api(m,u){var x=new XMLHttpRequest();x.open(m,u,false);x.setRequestHeader("X-Requested-With","fetch");try{x.send(null)}catch(e){return{status:0}}return x}
-var ME=null;try{var _r=api("GET","/api/me");if(_r.status===200)ME=JSON.parse(_r.responseText)}catch(e){}
+var ME=null,OFF=false;
+function cget(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+function cset(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+try{var _r=api("GET","/api/me");
+  if(_r.status===200){ME=JSON.parse(_r.responseText);cset("meCache",ME);
+    try{Object.keys(localStorage).forEach(function(k){if(/^atvCache/.test(k)&&k!=="atvCache"+ME.id)localStorage.removeItem(k)})}catch(e){}}
+  else if(_r.status===0){ME=cget("meCache");OFF=!!ME}}catch(e){}
+window.OFFLINE=OFF;
 window.ME=ME;
 var CATS={TRE:"Treinamento",IMP:"Importação",SUP:"Suporte",REU:"Reunião",DEV:"Desenvolvimento",DOC:"Documentação"};
 var ST={todo:"pendente",doing:"em andamento",done:"concluída"},NX={todo:"doing",doing:"done",done:"todo"};
@@ -22,26 +29,41 @@ var saveT=null,dirty=false,chain=Promise.resolve(),snap={},busy=0;
 function nz(i){i.tags=Array.isArray(i.tags)?i.tags:[];i.subs=Array.isArray(i.subs)?i.subs:[];i.pin=!!i.pin;i.spent=+i.spent||0;i.tstart=+i.tstart||0;i.due=i.due||"";i.fim=+i.fim||0;i.anx=+i.anx||0;return i}
 function sig(i){return[i.id,i.date,i.time||"",+i.dur||0,i.title,i.desc||"",i.cat,i.who||"",i.prio,i.status,(i.tags||[]).join("\u0002"),JSON.stringify(i.subs||[]),i.pin?1:0,+i.spent||0,+i.tstart||0,i.due||""].join("\u0001")}
 function mk(l){var m={};l.forEach(function(i){m[i.id]=sig(i)});return m}
-function save(){dirty=true;clearTimeout(saveT);saveT=setTimeout(flush,150);notifUpdate()}
+function save(){dirty=true;clearTimeout(saveT);saveT=setTimeout(flush,150);notifUpdate();cacheSave()}
 function flush(){dirty=false;var cur=mk(items),ups=items.filter(function(i){return snap[i.id]!==cur[i.id]}),dels=Object.keys(snap).filter(function(id){return !(id in cur)});
   if(!ups.length&&!dels.length)return;busy++;
   chain=chain.then(function(){return jf("PATCH","/api/atividades",{upserts:ups,deletes:dels})}).then(function(x){busy--;
-    if(x.s===401)return;if(!x.ok){alert("Não foi possível salvar no servidor.");return}
+    if(x.s===401)return;if(!x.ok){alert("Não foi possível salvar no servidor.");return}offSet(false);
     var d=x.d||{},cf={},tit=[];(d.conflitos||[]).forEach(function(c){cf[c.id]=c;tit.push(c.title)});
     ups.forEach(function(i){
       if(cf[i.id]){var k=items.findIndex(function(o){return o.id===i.id});if(k>-1)items[k]=nz(cf[i.id]);snap[i.id]=sig(nz(cf[i.id]));return}
       snap[i.id]=cur[i.id];var live=findIt(i.id);if(live&&d.revs&&d.revs[i.id])live.rev=d.revs[i.id]});
     dels.forEach(function(id){delete snap[id]});
-    if(tit.length){toast("“"+tit[0]+"”"+(tit.length>1?" e mais "+(tit.length-1):"")+" foi alterada em outro lugar. Mostrando a versão mais recente.",{ms:9000});render();notifUpdate()}}).catch(function(){busy--;dirty=true;clearTimeout(saveT);saveT=setTimeout(flush,5000)})}
+    if(tit.length){toast("“"+tit[0]+"”"+(tit.length>1?" e mais "+(tit.length-1):"")+" foi alterada em outro lugar. Mostrando a versão mais recente.",{ms:9000});render();notifUpdate()}
+    cacheSave()}).catch(function(){busy--;dirty=true;offSet(true);cacheSave();clearTimeout(saveT);saveT=setTimeout(flush,OFF?15000:5000)})}
 function whenSaved(fn){if(dirty){clearTimeout(saveT);flush()}chain=chain.then(fn).catch(function(){})}
 function pull(){if(!ME||dirty||busy||document.hidden)return;jf("GET","/api/atividades",undefined,true).then(function(x){
-  if(!x.ok||dirty||busy||!Array.isArray(x.d))return;var m=mk(x.d),a=Object.keys(m),b=Object.keys(snap);
+  if(x.ok)offSet(false);if(!x.ok||dirty||busy||!Array.isArray(x.d))return;var m=mk(x.d),a=Object.keys(m),b=Object.keys(snap);
   if(a.length===b.length&&a.every(function(k){return snap[k]===m[k]})){x.d.forEach(function(r){var l=findIt(r.id);if(l){l.rev=r.rev;l.anx=+r.anx||0;l.fim=+r.fim||0}});return}
-  items=x.d.map(nz);snap=mk(items);render();notifUpdate();dgAvisa()})}
+  items=x.d.map(nz);snap=mk(items);render();notifUpdate();dgAvisa();cacheSave()}).catch(function(){})}
 setInterval(pull,20000);document.addEventListener("visibilitychange",function(){if(!document.hidden)pull()});
 window.addEventListener("beforeunload",function(){if(dirty)flush()});
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-function load(){var r=api("GET","/api/atividades");if(r.status===200){try{items=JSON.parse(r.responseText).map(nz)}catch(e){items=[]}}else items=[];snap=mk(items)}
+function load(){var r=api("GET","/api/atividades"),c=ME&&cget("atvCache"+ME.id);
+  if(r.status===200){try{items=JSON.parse(r.responseText).map(nz)}catch(e){items=[]}snap=mk(items);
+    // havia alteracoes feitas offline e ainda nao enviadas: reaplica por cima e envia
+    if(c&&c.pend&&Array.isArray(c.items)&&c.snap){var srvI=items,srv=snap,loc={};items=c.items.map(nz);snap=c.snap;items.forEach(function(i){loc[i.id]=1});
+      srvI.forEach(function(i){if(!(i.id in snap)&&!loc[i.id]){items.push(i);snap[i.id]=srv[i.id]}});  // novas no servidor (ex.: delegadas) entram
+      setTimeout(function(){dirty=true;flush();toast("Enviando as alterações feitas sem conexão…",{ms:4000})},800)}}
+  else if(r.status===0&&c&&Array.isArray(c.items)){items=c.items.map(nz);snap=c.snap||mk(items);OFF=true}
+  else{items=[];snap=mk(items)}
+  cacheSave()}
+var cacheT=null;
+function cacheSave(){clearTimeout(cacheT);cacheT=setTimeout(function(){if(!ME)return;var pend=dirty||busy>0||Object.keys(snap).length!==items.length||items.some(function(i){return snap[i.id]!==sig(i)});
+  cset("atvCache"+ME.id,{items:items,snap:snap,pend:pend,quando:Date.now()})},300)}
+function offSet(on){OFF=on;window.OFFLINE=on;document.body.classList.toggle("offline",on);var b=document.getElementById("offB");if(b)b.hidden=!on}
+window.addEventListener("online",function(){setTimeout(function(){if(dirty||Object.keys(snap).length!==items.length||items.some(function(i){return snap[i.id]!==sig(i)})){dirty=true;flush()}pull()},1500)});
+window.addEventListener("offline",function(){offSet(true)});
 function dayItems(){var d=$("day").value;return items.filter(function(i){return i.date===d}).sort(function(a,b){return (b.pin?1:0)-(a.pin?1:0)||(a.time||"99").localeCompare(b.time||"99")})}
 function match(i){var q=$("q").value.trim().toLowerCase();return !q||(i.title+" "+i.desc+" "+i.who+" "+(i.tags||[]).join(" ")).toLowerCase().indexOf(q)>-1}
 var openSubs={};
@@ -891,5 +913,5 @@ window.SUP={ME:ME,CATS:CATS,ST:ST,esc:esc,fm:fm,br:br,iso:iso,jf:jf,whenSaved:wh
 $("fc").innerHTML='<option value="">Todas as categorias</option>'+Object.keys(CATS).map(function(k){return '<option value="'+k+'">'+CATS[k]+'</option>'}).join("");
 $("fCat").innerHTML=Object.keys(CATS).map(function(k){return '<option value="'+k+'">'+CATS[k]+'</option>'}).join("");
 window.addEventListener("hashchange",setView);
-load();$("day").value=iso(new Date());setView();render();notifUpdate();if(ME)metaFetch();startUp();setTimeout(dgAvisa,1500);
+load();offSet(OFF);$("day").value=iso(new Date());setView();render();notifUpdate();if(ME)metaFetch();startUp();setTimeout(dgAvisa,1500);
 })();
