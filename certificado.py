@@ -23,7 +23,8 @@ def ips_locais():
         s.close()
     except OSError:
         pass
-    return {ip for ip in ips if not ip.startswith("127.")}
+    # 169.254.x = placa sem rede (Wi-Fi desligado, VPN, Tailscale): nao serve para acessar e mudaria o certificado
+    return {ip for ip in ips if not ip.startswith(("127.", "169.254."))}
 
 
 def _ip_valido(valor):
@@ -92,9 +93,12 @@ def garantir(host, pasta):
     """Devolve (cert, chave, foi_gerado). Levanta excecao se nao der para gerar."""
     os.makedirs(pasta, exist_ok=True)
     cert, chave = os.path.join(pasta, "cert.pem"), os.path.join(pasta, "key.pem")
-    ips = ips_locais()
+    # HOST com IP fixo (config.bat): o certificado so precisa desse IP. Assim, instalar VPN, Tailscale ou
+    # Hyper-V (placas de rede novas) nao gera certificado novo, que o navegador recusaria ate aceitar de novo.
     if host and _ip_valido(host) and host != "0.0.0.0":
-        ips.add(host)
+        ips = {host}
+    else:
+        ips = ips_locais()
     if os.path.exists(cert) and os.path.exists(chave) and _ainda_serve(cert, ips):
         return cert, chave, False
     _gerar(cert, chave, ips)
