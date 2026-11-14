@@ -1,4 +1,11 @@
 [
+  {"versao": "3.6.0", "data": "2026-11-14", "titulo": "Manutenção automática",
+   "itens": [
+     "11 rotinas automáticas: verificação do banco, teste do último backup, otimização semanal, faxina mensal de registros antigos, anexos órfãos, logs antigos, espaço em disco, validade do certificado, cronômetros esquecidos, contas paradas e aviso de versão nova.",
+     "Tela Administração → Manutenção: resultado de cada rotina, quando rodou e botão “Rodar agora”.",
+     "Problemas viram aviso para o administrador (uma vez, sem repetir); cronômetro esquecido avisa a própria pessoa.",
+     "Notificações do sino somem ao clicar e há “Marcar todas como lidas”; reiniciar-servico.bat para aplicar atualizações."
+   ]},
   {"versao": "3.5.1", "data": "2026-11-14", "titulo": "Delegar com aceite",
    "itens": [
      "Delegar agora envia um pedido: a pessoa aceita ou recusa (com motivo). Até ela responder, a atividade continua com quem delegou.",

@@ -25,6 +25,7 @@ import anexos
 import atualizar
 import extras
 import gestao
+import manutencao
 import importar
 import prazos
 import relatorios
@@ -222,6 +223,7 @@ def init_db():
     if "permissoes" not in ucols:
         con.execute("ALTER TABLE usuarios ADD COLUMN permissoes TEXT NOT NULL DEFAULT ''")
     extras.init_db(con)
+    manutencao.init_db(con)
     cols = [r["name"] for r in con.execute("PRAGMA table_info(atividades)")]
     for nome, defn in (("prazo", "TEXT NOT NULL DEFAULT ''"), ("fim", "INTEGER NOT NULL DEFAULT 0"),
                        ("deleg_de", "TEXT NOT NULL DEFAULT ''"), ("deleg_em", "TEXT NOT NULL DEFAULT ''"),
@@ -1288,6 +1290,7 @@ def saude():
 relatorios.register(app, get_db, login_required, pode_equipe)
 gestao.register(app, get_db, login_required, equipe_required, pode_equipe, tem_perm)
 extras.register(app, get_db, login_required, tem_perm, perm_required, ANEXOS_DIR, ator)
+manutencao.register(app, get_db, login_required, admin_required)
 importar.register(app, login_required)
 anexos.register(app, get_db, login_required, pode_equipe, ANEXOS_DIR)
 seguranca.register(app, get_db, login_required, admin_required, agente_curto, SESSAO_MIN)
@@ -1432,6 +1435,11 @@ def restaura_anexos(caminho_banco):
     return faltaram
 
 
+manutencao.configurar(connect=connect, base=BASE, db_path=DB_PATH, backup_dir=BACKUP_DIR, anexos_dir=ANEXOS_DIR,
+                      cert_dir=CERT_DIR, https=USAR_HTTPS, versao=VERSAO, re_bkp=RE_BKP, re_anexo=RE_ANEXO,
+                      aviso=seguranca.aviso, demo=DEMO)
+
+
 def laco_backup():
     """Faz um backup por dia (confere a cada hora)."""
     while True:
@@ -1447,7 +1455,11 @@ def laco_backup():
             con.close()
         except Exception as e:
             print("  Falha ao limpar o historico:", e)
-        time.sleep(3600)
+        try:
+            manutencao.tick()  # rotinas automaticas de manutencao (cada uma no seu intervalo)
+        except Exception as e:
+            print("  Falha na manutencao automatica:", e)
+        time.sleep(900)
 
 
 # ------------------------------------------------------------- execucao

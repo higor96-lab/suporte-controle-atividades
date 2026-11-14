@@ -256,3 +256,15 @@ html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.a
 .pedr input{flex:1;min-width:180px;height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);color:var(--ink)}
 .dlgp{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:#fff0d0;color:#7a5000;white-space:nowrap}
 :root[data-theme="dark"] .dlgp{background:#4a3a14;color:#ffd98a}
+
+/* ---------- manutencao automatica ---------- */
+.mnl{list-style:none;margin:0;padding:0}
+.mnl li{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding:14px 4px;border-top:1px solid var(--line);flex-wrap:wrap}
+.mnl li.pr{background:color-mix(in srgb,var(--crit) 6%,transparent);border-radius:8px;padding:14px 12px}
+.mnt{flex:1;min-width:260px}.mnt b{font-size:15px;margin-right:8px}.mnt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.mnt p{margin:6px 0 0;font-size:14px}
+.mns{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.mns.ok{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+.mns.pr{background:color-mix(in srgb,var(--crit) 15%,transparent);color:var(--crit)}
+.mns.na{background:var(--soft);color:var(--muted)}
+.mnq{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.mnq small{color:var(--muted);font-size:12px}

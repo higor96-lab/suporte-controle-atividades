@@ -351,6 +351,24 @@ pedLoad();pedT=setInterval(function(){if(!document.hidden)pedLoad()},30000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)pedLoad()});
 window.CMD_EXTRA.push(function(){var n=(PED.recebidas||[]).length;return n?[{t:"Ver pedidos de delegação ("+n+")",s:"Ação",ic:"↪",kw:"pedido delegacao aceitar recusar",run:function(){location.hash="#visao";setTimeout(function(){$("pedBox").scrollIntoView({block:"center"})},80)}}]:[]});
 
+// ================= manutencao automatica (administrador) =================
+function quando(s){if(!s)return "nunca";var t=new Date(s.replace(" ","T")),m=Math.round((Date.now()-t)/60000);
+  return m<1?"agora":m<60?"há "+m+" min":m<1440?"há "+Math.round(m/60)+" h":"há "+Math.round(m/1440)+" dia(s)"}
+function freq(h,mad){return (h<=1?"a cada hora":h<24?"a cada "+h+" horas":h===24?"todo dia":h===168?"toda semana":"todo mês")+(mad?", de madrugada":"")}
+function mnRender(l){var ok=l.filter(function(r){return r.ok===true}).length,pr=l.filter(function(r){return r.ok===false}).length;
+  $("mnK").innerHTML='<div><b class="t-up">'+ok+'</b><small>rotinas em ordem</small></div><div><b class="'+(pr?"t-down":"")+'">'+pr+'</b><small>com problema</small></div><div><b>'+l.length+'</b><small>rotinas automáticas</small></div>';
+  $("mnL").innerHTML=l.map(function(r){var st=r.ok===true?'<span class="mns ok">✓ ok</span>':r.ok===false?'<span class="mns pr">⚠ atenção</span>':'<span class="mns na">— '+(r.ultima?"não se aplica":"aguardando")+'</span>';
+    return '<li class="'+(r.ok===false?"pr":"")+'"><div class="mnt"><b>'+esc(r.titulo)+'</b>'+st+'<small>'+esc(r.descricao)+' · '+freq(r.intervalo_h,r.madrugada)+'</small><p>'+esc(r.resumo)+'</p></div>'+
+      '<div class="mnq"><small>Última: '+quando(r.ultima)+'</small><button type="button" class="btn sm" data-mn="'+r.rotina+'">Rodar agora</button></div></li>'}).join("")}
+function mnLoad(){if(!ME.admin)return;$("mnL").innerHTML='<li><div class="sk" style="height:200px;width:100%"></div></li>';jf("GET","/api/manutencao").then(function(x){if(x.ok)mnRender(x.d.rotinas)})}
+function mnRodar(nome,btn){btn.disabled=true;var t0=btn.textContent;btn.textContent="Rodando…";
+  jf("POST","/api/manutencao/"+nome+"/rodar").then(function(x){btn.disabled=false;btn.textContent=t0;if(x.ok){mnRender(x.d.rotinas);toast(nome==="todas"?"Todas as rotinas rodaram.":"Rotina concluída.",{ms:2500})}else toast((x.d&&x.d.erro)||"Falhou.",{ms:4000})})}
+$("mnL").addEventListener("click",function(e){var b=e.target.closest("[data-mn]");if(b)mnRodar(b.getAttribute("data-mn"),b)});
+$("mnTodas").onclick=function(){mnRodar("todas",this)};$("mnAtual").onclick=mnLoad;
+// recados do sistema para o usuario (ex.: cronometro esquecido parado sozinho)
+function rcLoad(){jf("GET","/api/recados",undefined,true).then(function(x){if(x.ok&&Array.isArray(x.d)&&x.d.length){x.d.forEach(function(r){toast("🛠 "+r.texto,{ms:15000,cls:"lemb"})});S.whenSaved(function(){return recarrega()})}}).catch(function(){})}
+setTimeout(rcLoad,2500);setInterval(function(){if(!document.hidden)rcLoad()},300000);
+
 // ================= painel para TV =================
 var tvT=null,tvR=null;
 function tvLoad(){jf("GET","/api/painel",undefined,true).then(function(x){if(x.ok)tvRender(x.d)})}
@@ -373,7 +391,7 @@ document.addEventListener("fullscreenchange",function(){$("tvFull").textContent=
 function naTela(){var v=S.view();document.body.classList.toggle("tvmode",v==="tv");
   clearInterval(tvT);clearInterval(tvR);
   if(v==="tv"){tvLoad();tvHora();tvT=setInterval(tvLoad,60000);tvR=setInterval(tvHora,10000)}
-  else if(v==="lixeira")lxLoad();else if(v==="comparar")cmpLoad();else if(v==="auditoria")auLoad();else if(v==="visao")blkRender()}
+  else if(v==="lixeira")lxLoad();else if(v==="manutencao")mnLoad();else if(v==="comparar")cmpLoad();else if(v==="auditoria")auLoad();else if(v==="visao")blkRender()}
 window.addEventListener("hashchange",function(){setTimeout(naTela,0)});naTela();
 
 // ================= celular: botao + flutuante =================

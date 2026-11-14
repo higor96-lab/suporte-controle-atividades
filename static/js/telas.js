@@ -16,7 +16,7 @@ var SEC=[
   {id:"atv",nome:"Atividades",views:[["atividades","Lista"],["agenda","Calendário"],["quadro","Quadro"],["foco","Foco"],["busca","Busca"],["historico","Concluídas"],["importar","Importar"],["lixeira","Lixeira"]]},
   {id:"rel",nome:"Relatórios",views:[["relatorios","Relatório"],["graficos","Gráficos"],["comparar","Mês a mês"],["auditoria","Auditoria de tempo"],["alteracoes","Alterações"]]},
   {id:"eq",nome:"Equipe",views:[["equipe","Painel da equipe"],["tv","Painel para TV","tv"]],req:"equipe"},
-  {id:"adm",nome:"Administração",views:[["usuarios","Usuários"],["backups","Backups"],["sistema","Saúde e acessos"],["sobre","Sobre e atualização"]],req:"admin"}];
+  {id:"adm",nome:"Administração",views:[["usuarios","Usuários"],["backups","Backups"],["sistema","Saúde e acessos"],["manutencao","Manutenção"],["sobre","Sobre e atualização"]],req:"admin"}];
 function pode(s){return !s.req||!!ME[s.req]}
 function podeV(x){return !x[2]||(ME.perms||[]).indexOf(x[2])>-1}
 SEC.forEach(function(s){s.views=s.views.filter(podeV)});

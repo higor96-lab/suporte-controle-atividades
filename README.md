@@ -56,6 +56,27 @@ Menu *Dados → Importar dados*:
 3. O sistema mostra uma **prévia** com as linhas válidas e os erros (por exemplo, data inválida). Atividades que já existem (mesma data, hora e título) são ignoradas por padrão.
 4. Confirme em **Importar**. Limite: 2000 linhas e 6 MB por arquivo. O importador por CSV continua disponível em "avançado".
 
+## Novidades da versão 3.6 (manutenção automática)
+
+O sistema cuida de si mesmo. As rotinas rodam sozinhas (as pesadas de madrugada) e o resultado fica em **Administração → Manutenção**:
+
+| Rotina | Quando | O que faz |
+|---|---|---|
+| Verificação do banco | todo dia | confere a integridade do banco de dados |
+| Teste do backup | todo dia | abre o último backup e confere se é restaurável |
+| Otimização | toda semana | reorganiza e compacta o banco |
+| Faxina | todo mês | sessões expiradas, acessos com mais de 6 meses, avisos lidos, pedidos e checklist antigos |
+| Anexos órfãos | toda semana | apaga arquivos de anexo sem atividade |
+| Logs e temporários | toda semana | logs com mais de 90 dias e pacotes de atualização antigos |
+| Espaço em disco | a cada 6 h | avisa se faltar espaço ou se os backups crescerem demais |
+| Certificado HTTPS | todo dia | avisa 30 dias antes de vencer |
+| Cronômetros esquecidos | a cada hora | para cronômetros ligados há mais de 12 h e avisa a pessoa |
+| Contas paradas | toda semana | lista usuários sem acesso há mais de 90 dias |
+| Versão nova | todo dia | consulta o GitHub e avisa se há atualização (não instala sozinho) |
+
+Problemas viram aviso para o administrador (sino de Segurança), uma vez só. Os limites podem ser trocados no `config.bat`
+(veja `config.exemplo.bat`).
+
 ## Novidades da versão 3.5
 
 **Dia a dia**

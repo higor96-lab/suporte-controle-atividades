@@ -19,3 +19,8 @@ rem set ANEXOS_DIR=D:\anexos-suporte
 rem set EXIGIR_2FA_ADMIN=1
 rem Opcional: desligar a protecao CSP da pagina (so se alguma tela parar de funcionar).
 rem set CSP=0
+rem Opcional: limites da manutencao automatica (Administracao > Manutencao).
+rem set MANUT_DISCO_MIN_GB=2
+rem set MANUT_BACKUP_MAX_GB=10
+rem set MANUT_CRONOMETRO_H=12
+rem set MANUT_CONTA_DIAS=90
