@@ -89,6 +89,93 @@ def buscar(db, d1, d2, alvo="me", situacao=""):
             "itens": itens, "resumo": resumo}
 
 
+def graficos_excel(wb, rel):
+    """Aba 'Graficos' com graficos nativos do Excel (editaveis), montados a partir das tabelas da propria aba."""
+    from collections import OrderedDict
+    from openpyxl.chart import BarChart, LineChart, PieChart, Reference
+    from openpyxl.chart.label import DataLabelList
+    from openpyxl.styles import Font
+
+    gs = wb.create_sheet("Gráficos")
+    gs["A1"] = "Gráficos do período"
+    gs["A1"].font = Font(bold=True, size=14)
+    azul, laranja = "2A78D6", "EB6834"
+    itens = rel["itens"]
+
+    # tabela 1: por dia (concluidas x total, tempo previsto x real)
+    dias = OrderedDict()
+    for i in itens:
+        d = dias.setdefault(i["data"], [0, 0, 0, 0])
+        d[0] += 1
+        if i["status"] == "done":
+            d[1] += 1
+            d[2] += i["dur"]
+            d[3] += i["real"]
+    gs.append([])
+    gs.append(["Dia", "Atividades", "Concluídas", "Previsto (min)", "Real (min)"])
+    ini = gs.max_row
+    for k, v in dias.items():
+        gs.append([br(date.fromisoformat(k))] + v)
+    fim = gs.max_row
+    # tabela 2: por tipo
+    gs.append([])
+    gs.append(["Tipo", "Atividades"])
+    t_ini = gs.max_row
+    tipos = OrderedDict()
+    for i in itens:
+        tipos[i["tipo"]] = tipos.get(i["tipo"], 0) + 1
+    for k, v in sorted(tipos.items(), key=lambda x: -x[1]):
+        gs.append([k, v])
+    t_fim = gs.max_row
+    # tabela 3: situacao
+    gs.append([])
+    gs.append(["Situação", "Atividades"])
+    s_ini = gs.max_row
+    for k in ("Concluída", "Em andamento", "Pendente"):
+        gs.append([k, sum(1 for i in itens if i["situacao"].lower() == k.lower())])
+    s_fim = gs.max_row
+    for c in ("A", "B", "C", "D", "E"):
+        gs.column_dimensions[c].width = 16
+    for r in (ini, t_ini, s_ini):
+        for c in gs[r]:
+            c.font = Font(bold=True)
+
+    if fim > ini:
+        g1 = BarChart()
+        g1.title, g1.y_axis.title = "Atividades por dia", "Quantidade"
+        g1.add_data(Reference(gs, min_col=2, max_col=3, min_row=ini, max_row=fim), titles_from_data=True)
+        g1.set_categories(Reference(gs, min_col=1, min_row=ini + 1, max_row=fim))
+        g1.series[0].graphicalProperties.solidFill = "A9C8EE"
+        g1.series[1].graphicalProperties.solidFill = azul
+        g1.height, g1.width = 8, 18
+        gs.add_chart(g1, "G2")
+        g2 = LineChart()
+        g2.title, g2.y_axis.title = "Tempo previsto × real (concluídas)", "Minutos"
+        g2.add_data(Reference(gs, min_col=4, max_col=5, min_row=ini, max_row=fim), titles_from_data=True)
+        g2.set_categories(Reference(gs, min_col=1, min_row=ini + 1, max_row=fim))
+        g2.series[0].graphicalProperties.line.solidFill = azul
+        g2.series[1].graphicalProperties.line.solidFill = laranja
+        g2.height, g2.width = 8, 18
+        gs.add_chart(g2, "G19")
+    if t_fim > t_ini:
+        g3 = BarChart()
+        g3.type, g3.title = "bar", "Por tipo"
+        g3.add_data(Reference(gs, min_col=2, min_row=t_ini, max_row=t_fim), titles_from_data=True)
+        g3.set_categories(Reference(gs, min_col=1, min_row=t_ini + 1, max_row=t_fim))
+        g3.series[0].graphicalProperties.solidFill = azul
+        g3.legend = None
+        g3.height, g3.width = 8, 12
+        gs.add_chart(g3, "R2")
+        g4 = PieChart()
+        g4.title = "Situação"
+        g4.add_data(Reference(gs, min_col=2, min_row=s_ini, max_row=s_fim), titles_from_data=True)
+        g4.set_categories(Reference(gs, min_col=1, min_row=s_ini + 1, max_row=s_fim))
+        g4.dataLabels = DataLabelList()
+        g4.dataLabels.showPercent = True
+        g4.height, g4.width = 8, 12
+        gs.add_chart(g4, "R19")
+
+
 def excel(rel):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Font, PatternFill
@@ -128,6 +215,7 @@ def excel(rel):
     rs["A1"].font = Font(bold=True, size=14)
     rs.column_dimensions["A"].width = 26
     rs.column_dimensions["B"].width = 26
+    graficos_excel(wb, rel)
     buf = io.BytesIO()
     wb.save(buf)
     buf.seek(0)
