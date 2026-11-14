@@ -752,7 +752,16 @@ def listar_atividades():
     ).fetchall()
     cont = {r[0]: r[1] for r in get_db().execute(
         "SELECT atividade_id, COUNT(*) FROM anexos WHERE user_id=? GROUP BY atividade_id", (session["uid"],))}
-    return jsonify([ativ_json(r, cont.get(r["id"], 0)) for r in rows])
+    pend = {r["ativ_id"]: {"pedido": r["id"], "para": r["nome"]} for r in get_db().execute(
+        "SELECT d.id, d.ativ_id, u.nome FROM delegacoes d JOIN usuarios u ON u.id=d.para_uid "
+        "WHERE d.de_uid=? AND d.status='pendente'", (session["uid"],))}
+    out = []
+    for r in rows:
+        j = ativ_json(r, cont.get(r["id"], 0))
+        if r["id"] in pend:
+            j["pedido"] = pend[r["id"]]
+        out.append(j)
+    return jsonify(out)
 
 
 SQL_INS = ("INSERT OR REPLACE INTO atividades(user_id,%s,rev,fim,deleg_de,deleg_em,deleg_nota) VALUES(?,%s,?,?,?,?,?)"
@@ -835,7 +844,8 @@ def pessoas_delegar():
 @app.post("/api/delegar")
 @login_required
 def delegar():
-    """Passa uma atividade (com subtarefas e anexos) para outra pessoa: {"id", "para", "nota"}."""
+    """Pede para outra pessoa assumir a atividade: {"id", "para", "nota"}.
+    A atividade continua com quem delegou ate a pessoa aceitar (POST /api/delegacoes/<id>/aceitar)."""
     d = request.get_json(silent=True) or {}
     aid, nota = str(d.get("id", ""))[:40], str(d.get("nota", "")).strip()[:300]
     try:
@@ -848,23 +858,135 @@ def delegar():
     dest = db.execute("SELECT id, nome FROM usuarios WHERE id=?", (para,)).fetchone()
     if not dest:
         return jsonify(erro="Pessoa não encontrada."), 404
-    a = db.execute("SELECT * FROM atividades WHERE user_id=? AND id=?", (eu, aid)).fetchone()
+    a = db.execute("SELECT titulo FROM atividades WHERE user_id=? AND id=?", (eu, aid)).fetchone()
     if not a:
         return jsonify(erro="Atividade não encontrada (atualize a página)."), 404
+    pend = db.execute("SELECT u.nome FROM delegacoes d JOIN usuarios u ON u.id=d.para_uid "
+                      "WHERE d.de_uid=? AND d.ativ_id=? AND d.status='pendente'", (eu, aid)).fetchone()
+    if pend:
+        return jsonify(erro="Já existe um pedido aguardando %s. Cancele-o antes de delegar de novo." % pend["nome"]), 409
+    with db:
+        c = db.execute("INSERT INTO delegacoes(ativ_id, titulo, de_uid, para_uid, nota, criado) VALUES(?,?,?,?,?,?)",
+                       (aid, a["titulo"], eu, para, nota, int(time.time())))
+        gestao.log(db, ator(), "atividade", "delegou", aid, a["titulo"],
+                   "Pedido enviado para " + dest["nome"] + ((" — " + nota) if nota else ""))
+    return jsonify(ok=True, para=dest["nome"], pedido=c.lastrowid, pendente=True)
+
+
+def mover_atividade(db, de_uid, aid, para, nota, me_nome):
+    """Passa a atividade (com subtarefas, anexos e tempo gasto) para outro usuario. Devolve o id novo ou None."""
+    a = db.execute("SELECT * FROM atividades WHERE user_id=? AND id=?", (de_uid, aid)).fetchone()
+    if not a:
+        return None
     novo = aid
     while db.execute("SELECT 1 FROM atividades WHERE user_id=? AND id=?", (para, novo)).fetchone():
         novo = secrets.token_hex(6)
     agora = int(time.time())
     gasto = a["gasto"] + (agora - a["inicio"] if a["inicio"] else 0)  # cronometro ligado: para e guarda o tempo
-    me = ator()
+    db.execute("UPDATE atividades SET user_id=?, id=?, gasto=?, inicio=0, fixa=0, rev=rev+1, "
+               "deleg_de=?, deleg_em=?, deleg_nota=? WHERE user_id=? AND id=?",
+               (para, novo, gasto, me_nome, datetime.now().strftime("%Y-%m-%d %H:%M"), nota, de_uid, aid))
+    db.execute("UPDATE anexos SET user_id=?, atividade_id=? WHERE user_id=? AND atividade_id=?", (para, novo, de_uid, aid))
+    return novo
+
+
+def pedido_json(r, db):
+    a = db.execute("SELECT data, hora, dur, prazo, cat, prio FROM atividades WHERE user_id=? AND id=?",
+                   (r["de_uid"], r["ativ_id"])).fetchone()
+    return {"id": r["id"], "ativ_id": r["ativ_id"], "titulo": r["titulo"], "nota": r["nota"], "status": r["status"],
+            "resposta": r["resposta"], "de": r["de_nome"], "para": r["para_nome"],
+            "criado": datetime.fromtimestamp(r["criado"]).strftime("%Y-%m-%d %H:%M"),
+            "data": a["data"] if a else "", "hora": a["hora"] if a else "", "dur": a["dur"] if a else 0,
+            "prio": a["prio"] if a else "", "cat": a["cat"] if a else ""}
+
+
+SQL_PED = ("SELECT d.*, ud.nome AS de_nome, up.nome AS para_nome FROM delegacoes d "
+           "JOIN usuarios ud ON ud.id=d.de_uid JOIN usuarios up ON up.id=d.para_uid ")
+
+
+@app.get("/api/delegacoes")
+@login_required
+def delegacoes():
+    """recebidas: pedidos que esperam a minha resposta; enviadas: meus pedidos pendentes;
+    respostas: pedidos meus que ja foram aceitos ou recusados e eu ainda nao vi."""
+    db, eu = get_db(), session["uid"]
+    rec = db.execute(SQL_PED + "WHERE d.para_uid=? AND d.status='pendente' ORDER BY d.id", (eu,)).fetchall()
+    env = db.execute(SQL_PED + "WHERE d.de_uid=? AND d.status='pendente' ORDER BY d.id", (eu,)).fetchall()
+    resp = db.execute(SQL_PED + "WHERE d.de_uid=? AND d.status IN ('aceita','recusada') AND d.visto=0 ORDER BY d.id", (eu,)).fetchall()
+    # pedido de uma atividade que o dono excluiu: cancela sozinho
+    vivas = []
+    for r in rec:
+        if db.execute("SELECT 1 FROM atividades WHERE user_id=? AND id=?", (r["de_uid"], r["ativ_id"])).fetchone():
+            vivas.append(r)
+        else:
+            with db:
+                db.execute("UPDATE delegacoes SET status='cancelada', respondido=? WHERE id=?", (int(time.time()), r["id"]))
+    return jsonify(recebidas=[pedido_json(r, db) for r in vivas], enviadas=[pedido_json(r, db) for r in env],
+                   respostas=[pedido_json(r, db) for r in resp])
+
+
+def _pedido(pid, campo):
+    r = get_db().execute(SQL_PED + "WHERE d.id=? AND d." + campo + "=?", (pid, session["uid"])).fetchone()
+    if not r:
+        return None, (jsonify(erro="Pedido não encontrado."), 404)
+    if r["status"] != "pendente":
+        return None, (jsonify(erro="Este pedido já foi respondido ou cancelado."), 409)
+    return r, None
+
+
+@app.post("/api/delegacoes/<int:pid>/aceitar")
+@login_required
+def delegacao_aceitar(pid):
+    r, err = _pedido(pid, "para_uid")
+    if err:
+        return err
+    db = get_db()
     with db:
-        db.execute("UPDATE atividades SET user_id=?, id=?, gasto=?, inicio=0, fixa=0, rev=rev+1, "
-                   "deleg_de=?, deleg_em=?, deleg_nota=? WHERE user_id=? AND id=?",
-                   (para, novo, gasto, me["nome"], datetime.now().strftime("%Y-%m-%d %H:%M"), nota, eu, aid))
-        db.execute("UPDATE anexos SET user_id=?, atividade_id=? WHERE user_id=? AND atividade_id=?", (para, novo, eu, aid))
-        gestao.log(db, me, "atividade", "delegou", novo, a["titulo"],
-                   "Para: " + dest["nome"] + ((" — " + nota) if nota else ""))
-    return jsonify(ok=True, para=dest["nome"])
+        novo = mover_atividade(db, r["de_uid"], r["ativ_id"], r["para_uid"], r["nota"], r["de_nome"])
+        if not novo:
+            db.execute("UPDATE delegacoes SET status='cancelada', respondido=? WHERE id=?", (int(time.time()), pid))
+            return jsonify(erro="Esta atividade não existe mais (foi excluída por quem delegou)."), 410
+        db.execute("UPDATE delegacoes SET status='aceita', respondido=?, ativ_id=? WHERE id=?", (int(time.time()), novo, pid))
+        gestao.log(db, ator(), "atividade", "delegou", novo, r["titulo"], "Aceitou o pedido de " + r["de_nome"])
+    return jsonify(ok=True, id=novo)
+
+
+@app.post("/api/delegacoes/<int:pid>/recusar")
+@login_required
+def delegacao_recusar(pid):
+    r, err = _pedido(pid, "para_uid")
+    if err:
+        return err
+    motivo = str((request.get_json(silent=True) or {}).get("motivo", "")).strip()[:300]
+    db = get_db()
+    with db:
+        db.execute("UPDATE delegacoes SET status='recusada', resposta=?, respondido=? WHERE id=?", (motivo, int(time.time()), pid))
+        gestao.log(db, ator(), "atividade", "delegou", r["ativ_id"], r["titulo"],
+                   "Recusou o pedido de " + r["de_nome"] + ((" — " + motivo) if motivo else ""))
+    return jsonify(ok=True)
+
+
+@app.post("/api/delegacoes/<int:pid>/cancelar")
+@login_required
+def delegacao_cancelar(pid):
+    r, err = _pedido(pid, "de_uid")
+    if err:
+        return err
+    db = get_db()
+    with db:
+        db.execute("UPDATE delegacoes SET status='cancelada', respondido=? WHERE id=?", (int(time.time()), pid))
+    return jsonify(ok=True)
+
+
+@app.post("/api/delegacoes/vistas")
+@login_required
+def delegacao_vistas():
+    ids = [int(i) for i in ((request.get_json(silent=True) or {}).get("ids") or []) if str(i).isdigit()][:200]
+    db = get_db()
+    with db:
+        for i in ids:
+            db.execute("UPDATE delegacoes SET visto=1 WHERE id=? AND de_uid=?", (i, session["uid"]))
+    return jsonify(ok=True)
 
 
 # -------------------------------------------------------------- usuarios

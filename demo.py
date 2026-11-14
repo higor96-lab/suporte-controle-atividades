@@ -60,7 +60,7 @@ def semear(db_path, base):
     try:
         con.execute("PRAGMA foreign_keys=ON")
         with con:
-            for t in ("anexos", "sessoes", "acessos", "avisos", "historico", "metas", "atividades", "usuarios"):
+            for t in ("delegacoes", "anexos", "sessoes", "acessos", "avisos", "historico", "metas", "atividades", "usuarios"):
                 con.execute("DELETE FROM %s" % t)
             for uid, login, nome, cargo, perfil in EQUIPE:
                 senha = SENHA if login == USUARIO else secrets.token_urlsafe(18)  # so o visitante consegue entrar
@@ -101,6 +101,12 @@ def semear(db_path, base):
             for aid, (_, _, nome, _, _), nota in zip(pend, EQUIPE[1:], ("Pode assumir? Estou em treinamento hoje.", "")):
                 con.execute("UPDATE atividades SET deleg_de=?, deleg_em=?, deleg_nota=? WHERE user_id=1 AND id=?",
                             (nome, datetime.now().strftime("%Y-%m-%d %H:%M"), nota, aid))
+            # um pedido de delegacao esperando a resposta do visitante (mostra o aceitar/recusar)
+            r = con.execute("SELECT id, titulo FROM atividades WHERE user_id=2 AND status='todo' AND data>=? ORDER BY data LIMIT 1",
+                            (hoje.isoformat(),)).fetchone()
+            if r:
+                con.execute("INSERT INTO delegacoes(ativ_id, titulo, de_uid, para_uid, nota, criado) VALUES(?,?,2,1,?,?)",
+                            (r[0], r[1], "Consegue assumir? Estou cobrindo outro setor hoje.", int(agora)))
     finally:
         con.close()
     with open(_carimbo(base), "w", encoding="utf-8") as f:

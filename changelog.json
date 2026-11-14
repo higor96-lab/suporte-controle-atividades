@@ -1,4 +1,11 @@
 [
+  {"versao": "3.5.1", "data": "2026-11-14", "titulo": "Delegar com aceite",
+   "itens": [
+     "Delegar agora envia um pedido: a pessoa aceita ou recusa (com motivo). Até ela responder, a atividade continua com quem delegou.",
+     "Pedidos recebidos aparecem na tela Hoje com os botões Aceitar e Recusar; quem pediu é avisado da resposta.",
+     "A atividade mostra “⏳ aguardando Fulano” e o pedido pode ser cancelado pelo menu ⋯.",
+     "Versão do sistema na tela Hoje e no login; formulário da atividade mais enxuto; correção do layout de Editar usuário."
+   ]},
   {"versao": "3.5.0", "data": "2026-11-14", "titulo": "Dia a dia, relatórios novos, offline e idiomas",
    "itens": [
      "Hoje em blocos (Agora, Próximas, Atrasadas), linha da atividade mais limpa e criação rápida digitando (ex.: “reunião amanhã 14h 30min #urgente @Maria”).",

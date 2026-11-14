@@ -242,3 +242,17 @@ html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.a
 /* caixas de marcar nao herdam o tamanho dos campos de texto */
 #form .ckl{flex-direction:row;align-items:center;gap:10px;font-size:14px;color:var(--ink)}
 #form .ckl input[type=checkbox],#apDlg input[type=checkbox],#plDlg input[type=checkbox]{width:18px;height:18px;min-width:18px;flex:none;margin:0;padding:0;border-radius:4px;box-shadow:none;accent-color:var(--dark,#3d6189)}
+
+/* ---------- pedidos de delegacao ---------- */
+.pedidos{padding:16px 20px;margin:0 0 18px;border-left:4px solid var(--c-a)}
+.pedh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pedl{list-style:none;margin:0;padding:0}
+.pedl li{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 0;border-top:1px solid var(--line)}
+.pedl li:first-child{border-top:0}
+.pedt{flex:1;min-width:220px}.pedt b{display:block;font-size:15px}.pedt small{color:var(--muted);font-size:13px}
+.pedt q{display:block;margin-top:4px;font-size:13.5px;color:var(--ink);font-style:italic;quotes:"“" "”"}
+.peda{display:flex;gap:8px}
+.pedr{display:flex;gap:8px;flex-basis:100%;flex-wrap:wrap}.pedr[hidden],.peda[hidden]{display:none}
+.pedr input{flex:1;min-width:180px;height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);color:var(--ink)}
+.dlgp{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:#fff0d0;color:#7a5000;white-space:nowrap}
+:root[data-theme="dark"] .dlgp{background:#4a3a14;color:#ffd98a}

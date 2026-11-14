@@ -32,6 +32,21 @@ CREATE TABLE IF NOT EXISTS checklist (
     feito_em TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS ix_check_user ON checklist(user_id);
+CREATE TABLE IF NOT EXISTS delegacoes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    ativ_id    TEXT NOT NULL,
+    titulo     TEXT NOT NULL DEFAULT '',
+    de_uid     INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    para_uid   INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    nota       TEXT NOT NULL DEFAULT '',
+    status     TEXT NOT NULL DEFAULT 'pendente',
+    resposta   TEXT NOT NULL DEFAULT '',
+    criado     INTEGER NOT NULL,
+    respondido INTEGER NOT NULL DEFAULT 0,
+    visto      INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS ix_deleg_para ON delegacoes(para_uid, status);
+CREATE INDEX IF NOT EXISTS ix_deleg_de ON delegacoes(de_uid, status);
 """
 
 

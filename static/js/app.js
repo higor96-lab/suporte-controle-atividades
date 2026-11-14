@@ -91,9 +91,9 @@ function row(i,showDate){
   '<button class="chk" data-a="toggle" aria-label="Marcar como concluída">✓</button>'+
   '<div class="bd"><div class="tt">'+(i.pin?'<span class="pin" title="Fixada no topo">★</span>':'')+esc(i.title)+'<i class="dot p-'+i.prio+'" title="Prioridade '+i.prio+'"></i></div>'+
   (i.desc?'<p>'+esc(i.desc)+'</p>':'')+sbl+
-  '<div class="tags"><span class="tag c-'+i.cat+'">'+i.cat+' · '+(CATS[i.cat]||i.cat)+'</span>'+(i.who?'<span class="who"><em>'+esc(ini(i.who))+'</em>'+esc(i.who)+'</span>':'')+(i.deleg?'<span class="dlgd" title="'+esc("Delegada por "+i.deleg.de+" em "+i.deleg.em.split(" ")[0].split("-").reverse().join("/")+(i.deleg.nota?" — "+i.deleg.nota:""))+'">↪ de '+esc(i.deleg.de)+'</span>':'')+tg+dueH+anxH+sbBtn+(i.status==="done"&&!i.spent?'':tmrBtn(i))+'</div></div>'+
+  '<div class="tags"><span class="tag c-'+i.cat+'">'+i.cat+' · '+(CATS[i.cat]||i.cat)+'</span>'+(i.who?'<span class="who"><em>'+esc(ini(i.who))+'</em>'+esc(i.who)+'</span>':'')+(i.pedido?'<span class="dlgp" title="Pedido de delegação enviado. A atividade continua com você até a pessoa aceitar.">⏳ aguardando '+esc(i.pedido.para)+'</span>':'')+(i.deleg?'<span class="dlgd" title="'+esc("Delegada por "+i.deleg.de+" em "+i.deleg.em.split(" ")[0].split("-").reverse().join("/")+(i.deleg.nota?" — "+i.deleg.nota:""))+'">↪ de '+esc(i.deleg.de)+'</span>':'')+tg+dueH+anxH+sbBtn+(i.status==="done"&&!i.spent?'':tmrBtn(i))+'</div></div>'+
   '<div class="rt"><button class="pill" data-a="cycle" data-s="'+i.status+'" title="Mudar situação">'+ST[i.status]+'</button>'+
-  '<details class="menu"><summary aria-label="Mais ações">⋯</summary><div><button data-a="edit">Editar</button><button data-a="pin">'+(i.pin?"Desafixar":"Fixar no topo")+'</button><button data-a="foco">Modo foco</button><button data-a="dup">Duplicar</button><button data-a="deleg">Delegar…</button><button data-a="del">Excluir</button></div></details></div></li>';
+  '<details class="menu"><summary aria-label="Mais ações">⋯</summary><div><button data-a="edit">Editar</button><button data-a="pin">'+(i.pin?"Desafixar":"Fixar no topo")+'</button><button data-a="foco">Modo foco</button><button data-a="dup">Duplicar</button>'+(i.pedido?'<button data-a="dgcancel">Cancelar delegação</button>':'<button data-a="deleg">Delegar…</button>')+'<button data-a="del">Excluir</button></div></details></div></li>';
 }
 function aFilt(i){var f=$("aF").value;return !f||(f==="late"?lateOf(i):f==="due"?!!i.due:i.status!=="done")}
 function render(){
@@ -167,6 +167,8 @@ function onAct(e){
   if(a==="del"){undoable("Atividade excluída",[id],function(){items=items.filter(function(x){return x.id!==id})});return}
   if(a==="pin"){it.pin=!it.pin;save();render();return}
   if(a==="deleg"){dgOpen(it);return}
+  if(a==="dgcancel"){if(!it.pedido)return;jf("POST","/api/delegacoes/"+it.pedido.pedido+"/cancelar").then(function(x){
+    if(!x.ok&&x.s!==409){toast((x.d&&x.d.erro)||"Não foi possível cancelar.",{ms:4000});return}delete it.pedido;render();toast("Pedido de delegação cancelado.",{ms:3000});if(window.pedLoad)window.pedLoad()});return}
   if(a==="dup"){var c=nz(clone(it));c.id=uid();delete c.rev;c.status="todo";c.spent=0;c.tstart=0;c.pin=false;c.subs=c.subs.map(function(x){return{t:x.t,d:false}});undoable("Atividade duplicada",[],function(){items.push(c)},[c.id]);flashRow(c.id);return}
   if(a==="timer"){timerToggle(it);return}
   if(a==="anx"){openDlg(it);return}
@@ -219,7 +221,7 @@ $("form").addEventListener("submit",function(e){
 });
 // ---- delegar: passa a atividade para outra pessoa (o servidor move a linha, as subtarefas e os anexos)
 var dgId=null,dgPessoas=null;
-function dgOpen(it){dgId=it.id;$("dgSub").textContent="“"+it.title+"”";$("dgErr").textContent="";$("dgNota").value="";
+function dgOpen(it){if(it.pedido){toast("Já existe um pedido aguardando "+it.pedido.para+". Para mudar, cancele-o no menu ⋯ da atividade.",{ms:6000});return}dgId=it.id;$("dgSub").textContent="“"+it.title+"”";$("dgErr").textContent="";$("dgNota").value="";
   var sel=$("dgPara");sel.innerHTML='<option value="">Carregando…</option>';$("dgDlg").showModal();
   (dgPessoas?Promise.resolve(dgPessoas):jf("GET","/api/delegar/pessoas").then(function(x){if(x.ok&&Array.isArray(x.d))dgPessoas=x.d;return dgPessoas||[]})).then(function(l){
     sel.innerHTML=l.length?'<option value="">Escolha a pessoa</option>'+l.map(function(p){return '<option value="'+p.id+'">'+esc(p.nome)+(p.cargo?" — "+esc(p.cargo):"")+'</option>'}).join(""):'<option value="">Não há outras pessoas cadastradas</option>';sel.focus()})}
@@ -229,10 +231,10 @@ $("dgForm").addEventListener("submit",function(e){e.preventDefault();var para=$(
   $("dgOk").disabled=true;$("dgErr").textContent="";
   whenSaved(function(){return jf("POST","/api/delegar",{id:id,para:+para,nota:$("dgNota").value.trim()}).then(function(x){$("dgOk").disabled=false;
     if(!x.ok){$("dgErr").textContent=(x.d&&x.d.erro)||"Não foi possível delegar.";return}
-    items=items.filter(function(i){return i.id!==id});delete snap[id];$("dgDlg").close();render();notifUpdate();
-    toast("Atividade delegada para "+x.d.para+".",{ms:4000})})})});
+    var a2=findIt(id);if(a2)a2.pedido={pedido:x.d.pedido,para:x.d.para};$("dgDlg").close();render();
+    toast("Pedido enviado para "+x.d.para+". A atividade continua com você até a pessoa aceitar.",{ms:6000});if(window.pedLoad)window.pedLoad()})})});
 // quem recebe: avisa uma vez por atividade delegada
-function dgAvisa(){if(!ME||(ME.foco&&ME.foco*1000>Date.now()))return;var vis={};try{vis=JSON.parse(localStorage.getItem("dgVis"+ME.id)||"{}")}catch(e){}
+function dgAvisa(){return;var vis={};try{vis=JSON.parse(localStorage.getItem("dgVis"+ME.id)||"{}")}catch(e){}
   var nov=items.filter(function(i){return i.deleg&&!vis[i.id+"|"+i.deleg.em]});if(!nov.length)return;
   nov.forEach(function(i){vis[i.id+"|"+i.deleg.em]=1});try{localStorage.setItem("dgVis"+ME.id,JSON.stringify(vis))}catch(e){}
   var i=nov[0];toast(nov.length>1?nov.length+" atividades foram delegadas para você.":i.deleg.de+" delegou “"+i.title+"” para você."+(i.deleg.nota?" Recado: "+i.deleg.nota:""),{ms:9000})}

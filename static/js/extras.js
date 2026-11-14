@@ -318,6 +318,39 @@ function auRender(){var X=+$("auX").value,feitas=AU.filter(function(r){return r.
 $("auL").addEventListener("click",function(e){var r=e.target.closest("[data-au]");if(r)S.openDlg(S.findIt(r.getAttribute("data-au")))});
 $("auL").addEventListener("keydown",function(e){var r=e.target.closest("[data-au]");if(r&&e.key==="Enter")S.openDlg(S.findIt(r.getAttribute("data-au")))});
 
+// ================= pedidos de delegacao: aceitar ou recusar =================
+var PED={recebidas:[]},pedT=null;
+function pedVis(){try{return JSON.parse(lget("pedVis"+ME.id,"{}"))||{}}catch(e){return {}}}
+function pedLoad(){return jf("GET","/api/delegacoes",undefined,true).then(function(x){if(!x.ok||!x.d)return;PED=x.d;pedRender();pedAvisos()}).catch(function(){})}
+window.pedLoad=pedLoad;
+function pedRender(){var l=PED.recebidas||[];$("pedBox").hidden=!l.length;$("pedN").textContent=l.length;
+  $("pedL").innerHTML=l.map(function(p){var quando=p.data?(nomeDia(p.data)+(p.hora?" às "+p.hora:"")):"";
+    return '<li data-ped="'+p.id+'"><div class="pedt"><b>'+esc(p.titulo)+'</b><small>'+esc(p.de)+' quer passar esta atividade para você'+(quando?' · '+esc(quando):'')+(p.dur?' · '+fm(p.dur):'')+'</small>'+
+      (p.nota?'<q>'+esc(p.nota)+'</q>':'')+'</div><div class="peda"><button type="button" class="btn sm" data-pa="rec">Recusar</button><button type="button" class="btn sm dark" data-pa="ace">Aceitar</button></div>'+
+      '<div class="pedr" hidden><input maxlength="300" placeholder="Motivo da recusa (opcional)" aria-label="Motivo da recusa"><button type="button" class="btn sm" data-pa="volta">Voltar</button><button type="button" class="btn sm dark" data-pa="rec2">Confirmar recusa</button></div></li>'}).join("")}
+function pedAvisos(){var vis=pedVis(),mudou=false,emFoco=ME.foco&&ME.foco*1000>Date.now();
+  var novos=emFoco?[]:(PED.recebidas||[]).filter(function(p){return !vis[p.id]});
+  novos.forEach(function(p){vis[p.id]=1;mudou=true});
+  if(novos.length){var ver=function(){location.hash="#visao";setTimeout(function(){$("pedBox").scrollIntoView({behavior:"smooth",block:"center"})},80)};
+    toast(novos.length>1?novos.length+" pedidos de delegação esperando a sua resposta.":novos[0].de+" quer delegar “"+novos[0].titulo+"” para você.",{acao:"Ver",fn:ver,ms:12000})}
+  if(mudou)lset("pedVis"+ME.id,JSON.stringify(vis));
+  var rs=PED.respostas||[];if(!rs.length)return;
+  rs.forEach(function(p){toast(p.status==="aceita"?p.para+" aceitou “"+p.titulo+"”. A atividade agora está com "+p.para+".":p.para+" recusou “"+p.titulo+"”."+(p.resposta?" Motivo: "+p.resposta.replace(/[.!?]*$/,"")+".":"")+" A atividade continua com você.",{ms:12000,cls:p.status==="aceita"?"":"lemb"})});
+  jf("POST","/api/delegacoes/vistas",{ids:rs.map(function(p){return p.id})});S.whenSaved(function(){return recarrega()})}
+$("pedL").addEventListener("click",function(e){var b=e.target.closest("[data-pa]");if(!b)return;var li=b.closest("[data-ped]"),id=li.getAttribute("data-ped"),a=b.getAttribute("data-pa");
+  if(a==="rec"){li.querySelector(".peda").hidden=true;li.querySelector(".pedr").hidden=false;li.querySelector(".pedr input").focus();return}
+  if(a==="volta"){li.querySelector(".peda").hidden=false;li.querySelector(".pedr").hidden=true;return}
+  qa("button",li).forEach(function(x){x.disabled=true});
+  if(a==="ace")jf("POST","/api/delegacoes/"+id+"/aceitar").then(function(x){
+    if(!x.ok){toast((x.d&&x.d.erro)||"Não foi possível aceitar.",{ms:6000});pedLoad();return}
+    toast("Pedido aceito. A atividade já está na sua lista.",{ms:4000});S.whenSaved(function(){return recarrega().then(function(){S.flashRow(x.d.id)})});pedLoad()});
+  else if(a==="rec2")jf("POST","/api/delegacoes/"+id+"/recusar",{motivo:li.querySelector(".pedr input").value.trim()}).then(function(x){
+    if(!x.ok)toast((x.d&&x.d.erro)||"Não foi possível recusar.",{ms:6000});else toast("Pedido recusado. Quem pediu será avisado.",{ms:4000});pedLoad()})});
+$("pedL").addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.matches(".pedr input")){e.preventDefault();e.target.closest("[data-ped]").querySelector('[data-pa="rec2"]').click()}});
+pedLoad();pedT=setInterval(function(){if(!document.hidden)pedLoad()},30000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)pedLoad()});
+window.CMD_EXTRA.push(function(){var n=(PED.recebidas||[]).length;return n?[{t:"Ver pedidos de delegação ("+n+")",s:"Ação",ic:"↪",kw:"pedido delegacao aceitar recusar",run:function(){location.hash="#visao";setTimeout(function(){$("pedBox").scrollIntoView({block:"center"})},80)}}]:[]});
+
 // ================= painel para TV =================
 var tvT=null,tvR=null;
 function tvLoad(){jf("GET","/api/painel",undefined,true).then(function(x){if(x.ok)tvRender(x.d)})}

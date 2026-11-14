@@ -99,6 +99,7 @@
           <div class="ctl"><input type="date" id="day" aria-label="Data"><button class="btn" id="plBtn" type="button" title="Planejar o dia (P)">☀ Planejar o dia</button><button class="btn" id="rsBtn" type="button" title="Resumo do fim do dia (E)">☾ Encerrar o dia</button><button class="btn dark" id="new">＋ Nova atividade</button></div>
         </div>
         <form class="qa" id="qaF" autocomplete="off"><span class="qai" aria-hidden="true">＋</span><input id="qa" aria-label="Criação rápida" placeholder="Crie digitando: reunião com financeiro amanhã 14h 30min #urgente @Maria" maxlength="300"><button class="btn sm dark" id="qaGo">Criar</button><div class="qap" id="qaPrev" aria-live="polite"></div></form>
+        <div class="card pedidos" id="pedBox" hidden><div class="pedh"><span class="eyebrow mono">Pedidos de delegação</span><span class="bkn" id="pedN">0</span></div><ul id="pedL" class="pedl"></ul></div>
         <div class="stats" id="stats"></div>
         <div class="cols">
           <div class="card agenda">
@@ -475,9 +476,9 @@
   <h2 id="dgT" style="margin:0 0 4px">Delegar atividade</h2><p class="lead" id="dgSub" style="margin:0 0 14px"></p>
   <label for="dgPara">Para quem</label><select id="dgPara" required></select>
   <label for="dgNota" style="margin-top:12px;display:block">Recado (opcional)</label><textarea id="dgNota" maxlength="300" placeholder="Ex.: o cliente pediu retorno até sexta"></textarea>
-  <p class="lead" style="margin:10px 0 0;font-size:12.5px">A atividade sai da sua lista e vai para a pessoa escolhida, com subtarefas, anexos e tempo gasto. Fica registrado no Histórico.</p>
+  <p class="lead" style="margin:10px 0 0;font-size:12.5px">A pessoa recebe um pedido e pode aceitar ou recusar. Até ela responder, a atividade continua com você. Se aceitar, a atividade vai para ela com subtarefas, anexos e tempo gasto.</p>
   <p id="dgErr" role="alert" class="uerr"></p>
-  <div class="rf" style="justify-content:flex-end"><button type="button" class="btn" id="dgCancel">Cancelar</button><button class="btn dark" id="dgOk">Delegar</button></div>
+  <div class="rf" style="justify-content:flex-end"><button type="button" class="btn" id="dgCancel">Cancelar</button><button class="btn dark" id="dgOk">Enviar pedido</button></div>
 </form></dialog>
 <div id="pw" class="pwm" hidden><form id="pwf" class="card pwb" autocomplete="off">
   <h2 id="pwt" style="margin:0">Alterar senha</h2><p class="lead" id="pwd" style="margin:0"></p>
