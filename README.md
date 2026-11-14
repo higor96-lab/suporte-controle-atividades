@@ -74,7 +74,8 @@ Menu *Dados → Importar dados*:
 - **Idiomas**: português, inglês e espanhol (Aparência → Idioma).
 - **Rodar como serviço do Windows**: clique com o botão direito em `instalar-servico.bat` → *Executar como administrador*.
   O sistema passa a subir sozinho com o computador e a reiniciar se cair (registro em `logs\servico.log`).
-  Para voltar ao jeito antigo: `remover-servico.bat`.
+  Para aplicar uma atualização: `reiniciar-servico.bat` (como administrador). Para voltar ao jeito antigo: `remover-servico.bat`.
+  Com o serviço instalado, não use o `iniciar.bat` (a porta já estará em uso).
 - **Cópia do backup em outra pasta**: `set BACKUP_COPIA=\\servidor\pasta` no `config.bat`. Se a cópia falhar, o administrador é avisado.
 - **Testes automáticos**: `python tests/rodar.py` (rodam também no GitHub a cada envio).
 

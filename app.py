@@ -1472,7 +1472,11 @@ def main():
             print("  Rode meuip.py para ver os IPs desta maquina.\n")
             host = "0.0.0.0"
         elif erro.errno in (errno.EADDRINUSE, 10048):
-            print("\n  ERRO: a porta %s ja esta em uso. Troque PORT no iniciar.bat.\n" % PORT)
+            print("\n  A porta %s ja esta em uso: o sistema provavelmente JA ESTA RODANDO." % PORT)
+            print("  - Se voce instalou o servico (instalar-servico.bat), nao precisa do iniciar.bat:")
+            print("    para aplicar uma atualizacao, rode reiniciar-servico.bat como administrador.")
+            print("  - Se ha outra janela do iniciar.bat aberta, feche-a e tente de novo.")
+            print("  - Se a porta e de outro programa, troque PORT no config.bat.\n")
             sys.exit(1)
         else:
             print("\n  ERRO ao abrir %s:%s -> %s\n" % (host, PORT, erro))
