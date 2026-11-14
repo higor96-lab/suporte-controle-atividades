@@ -280,8 +280,9 @@ html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.a
 #login.comlogo .lbrand .lmark{display:none}
 /* com a foto de fundo da instituicao */
 #login.comfoto{background:#071224 url(/static/marca/fundo.jpg) center/cover no-repeat}
-#login.comfoto .lfundo{-webkit-mask-image:none;mask-image:none;background:linear-gradient(90deg,rgba(4,12,30,.88) 0%,rgba(4,12,30,.62) 42%,rgba(4,12,30,.30) 70%,rgba(4,12,30,.45) 100%)}
+#login.comfoto .lfundo{-webkit-mask-image:none;mask-image:none;background:linear-gradient(90deg,rgba(4,12,30,.70) 0%,rgba(4,12,30,.42) 38%,rgba(4,12,30,.10) 62%,rgba(4,12,30,.16) 100%)}
 #login.comfoto .lbrand,#login.comfoto .lbrand h1{color:#fff}
+#login.comfoto .lbrand h1,#login.comfoto .lbrand p,#login.comfoto .lbrand li{text-shadow:0 2px 12px rgba(0,8,24,.85),0 1px 3px rgba(0,8,24,.9)}
 #login.comfoto .lbrand p{color:#d6e4f3;opacity:1}
 #login.comfoto .lbrand li{color:#e8f0f9;opacity:1}
 #login.comfoto .lbrand li::before{background:rgba(57,135,229,.35);color:#cfe3ff}
