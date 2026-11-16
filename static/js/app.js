@@ -86,7 +86,7 @@ function row(i,showDate){
   sbBtn=sb.length?'<button class="sbt" data-a="subs" aria-expanded="'+!!openSubs[i.id]+'" title="Mostrar subtarefas"><span class="sbp"><i style="width:'+Math.round(sd/sb.length*100)+'%"></i></span>'+sd+'/'+sb.length+'</button>':'',
   sbl=sb.length&&openSubs[i.id]?'<ul class="sbl">'+sb.map(function(x,k){return '<li class="'+(x.d?'d':'')+'"><button data-a="sub" data-k="'+k+'" aria-pressed="'+!!x.d+'" aria-label="Marcar subtarefa"></button><span>'+esc(x.t)+'</span></li>'}).join("")+'</ul>':'';
   var di=dueInfo(i),dueH=di?'<span class="due '+di.cls+'" title="Prazo (SLA)">⏰ '+di.txt+'</span>':'',anxH=i.anx?'<button class="anb" data-a="anx" title="Ver anexos">📎 '+i.anx+'</button>':'';
-  return '<li class="row'+(lateOf(i)?' atr':'')+'" data-s="'+i.status+'" data-id="'+i.id+'">'+
+  return '<li class="row'+(lateOf(i)?' atr':'')+(di&&di.late?' atrd':'')+'" data-s="'+i.status+'" data-id="'+i.id+'">'+
   '<div class="tm"><b>'+(i.time||"--:--")+'</b><small>'+(showDate?i.date.split("-").reverse().join("/"):(i.dur?i.dur+" min":""))+'</small></div>'+
   '<button class="chk" data-a="toggle" aria-label="Marcar como concluída">✓</button>'+
   '<div class="bd"><div class="tt">'+(i.pin?'<span class="pin" title="Fixada no topo">★</span>':'')+esc(i.title)+(i.prio==="alta"?'<span class="prt alta" title="Prioridade alta">↑ alta</span>':'')+'</div>'+
@@ -95,6 +95,7 @@ function row(i,showDate){
   '<div class="rt"><button class="pill" data-a="cycle" data-s="'+i.status+'" title="Mudar situação">'+ST[i.status]+'</button>'+
   '<details class="menu"><summary aria-label="Mais ações">⋯</summary><div><button data-a="edit">Editar</button><button data-a="pin">'+(i.pin?"Desafixar":"Fixar no topo")+'</button><button data-a="foco">Modo foco</button><button data-a="dup">Duplicar</button>'+(i.pedido?'<button data-a="dgcancel">Cancelar delegação</button>':'<button data-a="deleg">Delegar…</button>')+'<button data-a="del">Excluir</button></div></details></div></li>';
 }
+var ALL_PASSO=60,ALL_LIM=60,ALL_FIL="";
 function diaLabel(d){var p=d.split("-"),dt=new Date(+p[0],+p[1]-1,+p[2]),h=new Date();h.setHours(0,0,0,0);var df=Math.round((dt-h)/864e5);
   var w=dt.toLocaleDateString("pt-BR",{weekday:"long"});w=w.charAt(0).toUpperCase()+w.slice(1);
   return (df===0?"Hoje · ":df===-1?"Ontem · ":df===1?"Amanhã · ":"")+w+", "+p[2]+"/"+p[1]+(p[0]!==String(h.getFullYear())?"/"+p[0]:"")}
@@ -127,7 +128,9 @@ function render(){
   var keys=Object.keys(CATS).filter(function(k){return di.some(function(i){return i.cat===k})});
   $("sig").innerHTML=keys.length?keys.map(function(k){var c=di.filter(function(i){return i.cat===k}).length;return '<li><span class="ic">'+k[0]+'</span><div><b>'+CATS[k]+'</b><small>'+c+' no dia</small></div></li>'}).join(""):'<li><small>Sem atividades para resumir.</small></li>';
   var q0=$("q").value.trim(),all=items.filter(function(i){return match(i)&&aFilt(i)}).sort(function(a,b){return (b.date+(b.time||"")).localeCompare(a.date+(a.time||""))});
-  var ga="",gl="";all.forEach(function(i){if(i.date!==gl){gl=i.date;ga+='<li class="grp gday">'+diaLabel(i.date)+'</li>'}ga+=row(i)});
+  var ga="",gl="",fil=q0+"|"+$("aF").value;if(fil!==ALL_FIL){ALL_FIL=fil;ALL_LIM=ALL_PASSO}
+  all.slice(0,ALL_LIM).forEach(function(i){if(i.date!==gl){gl=i.date;ga+='<li class="grp gday">'+diaLabel(i.date)+'</li>'}ga+=row(i)});
+  if(all.length>ALL_LIM)ga+='<li class="maisl"><button class="btn" type="button" id="allMais">Mostrar mais '+Math.min(ALL_PASSO,all.length-ALL_LIM)+'</button><small>Mostrando '+ALL_LIM+' de '+all.length+' atividades</small></li>';
   $("all").innerHTML=all.length?ga:emptyHtml(q0||$("aF").value?"filtro":"todas");
   var nl=items.filter(lateOf).length;$("bLate").textContent=nl;$("bLate").style.background=nl?"var(--danger)":"";$("bLate").style.color=nl?"#fff":"";
   var dn2=items.filter(function(i){return i.status==="done"&&match(i)}).sort(function(a,b){return (b.date+(b.time||"")).localeCompare(a.date+(a.time||""))}),hh="",last="";
@@ -188,7 +191,8 @@ function onAct(e){
 ["list","all","hist","bsRes","calBox","kbBox"].forEach(function(i){$(i).addEventListener("click",onAct)});
 $("tabs").addEventListener("click",function(e){var b=e.target.closest("button[data-f]");if(b){filter=b.getAttribute("data-f");render()}});
 ["fc","fp","ft"].forEach(function(i){$(i).addEventListener("change",render)});
-$("q").addEventListener("input",render);$("aF").addEventListener("change",render);$("lkLate").addEventListener("click",function(){$("aF").value="late";render();if(window.innerWidth<860)document.body.classList.add("nomenu")});$("day").addEventListener("change",render);
+$("q").addEventListener("input",render);$("all").addEventListener("click",function(e){if(e.target.closest("#allMais")){ALL_LIM+=ALL_PASSO;render()}});
+if("IntersectionObserver" in window)new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting&&document.getElementById("allMais")){ALL_LIM+=ALL_PASSO;render()}})},{rootMargin:"300px"}).observe(document.getElementById("allEnd"));$("aF").addEventListener("change",render);$("lkLate").addEventListener("click",function(){$("aF").value="late";render();if(window.innerWidth<860)document.body.classList.add("nomenu")});$("day").addEventListener("change",render);
 var dTags=[],dSubs=[],dRealOrig=0;
 function dRender(){
   $("tgChips").innerHTML=dTags.map(function(t,k){return '<span class="etq">#'+esc(t)+' <button type="button" data-tgx="'+k+'" aria-label="Remover etiqueta">×</button></span>'}).join("");
@@ -912,7 +916,11 @@ window.sgForce=function(){if(sgForced||(ME&&ME.totp))return;sgForced=true;$("sgC
 $("segDlg").addEventListener("cancel",function(e){if(sgForced)e.preventDefault()});
 if(ME&&ME.exigir_2fa&&ME.admin&&!ME.totp)setTimeout(window.sgForce,400);
 // ---- sobre e atualizacao
-function sbLoad(){jf("GET","/api/versao").then(function(x){if(!x.ok)return;var d=x.d;
+function umData(){var e=document.getElementById("uMData");if(e)e.textContent=new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"})}
+umData();setInterval(umData,600000);
+function crtLoad(){jf("GET","/api/certificado").then(function(x){if(!x.ok)return;var d=x.d;$("crtBox").hidden=!d.https;if(!d.https)return;
+  $("crtInfo").textContent=(d.ca?"Autoridade válida até "+d.ca.ate+". ":"Autoridade ainda não criada: reinicie o serviço. ")+(d.servidor?"Certificado do servidor válido até "+d.servidor.ate+" (renovado sozinho).":"")})}
+function sbLoad(){crtLoad();jf("GET","/api/versao").then(function(x){if(!x.ok)return;var d=x.d;
   $("sbVer").innerHTML='<div class="sg"><div class="sc ok"><h3>Versão em uso</h3><strong>'+esc(d.versao)+'</strong><small>Python '+esc(d.python)+'</small></div>'+(d.reiniciar?'<div class="sc warn"><h3>Reinício pendente</h3><strong>'+esc(d.em_disco)+'</strong><small>A nova versão já está nos arquivos. Feche a janela do iniciar.bat e abra de novo.</small></div>':'')+'<div class="sc ok"><h3>Pasta do sistema</h3><small style="word-break:break-all">'+esc(d.pasta)+'</small></div></div>'+
     (d.anterior?'<div class="alrt w" style="margin-top:12px">A versão <b>'+esc(d.anterior.versao)+'</b> foi guardada antes da atualização para '+esc(d.anterior.substituida_por)+(d.anterior.quando?" ("+esc(d.anterior.quando)+")":"")+'. Se algo deu errado, dá para voltar. <button class="btn sm" type="button" id="sbUndo" style="margin-left:6px">Voltar para a '+esc(d.anterior.versao)+'</button></div>':'');
   if(d.anterior)$("sbUndo").onclick=function(){if(!confirm("Voltar o sistema para a versão "+d.anterior.versao+"?\n\nSó os arquivos do programa voltam; atividades, usuários e anexos não são alterados. Depois será preciso reiniciar o iniciar.bat."))return;var bt=this;bt.disabled=true;

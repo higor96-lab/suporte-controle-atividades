@@ -49,7 +49,7 @@
     <button id="logout" hidden aria-label="Sair" title="Sair"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0"/></svg></button>
     <button id="uBtn" class="ubtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Minha conta"><span class="uav" id="uAv">·</span></button>
     <div id="uMenu" class="umenu" role="menu" hidden>
-      <div class="umh"><b id="uMNome"></b><small id="uMCargo"></small></div>
+      <div class="umh"><b id="uMNome"></b><small id="uMCargo"></small><small class="umd" id="uMData"></small></div>
       <button role="menuitem" type="button" data-um="foco" id="umFoco">Não perturbe…</button>
       <button role="menuitem" type="button" data-um="ap">Aparência e preferências</button>
       <button role="menuitem" type="button" data-um="seg">Segurança da conta</button>
@@ -129,7 +129,7 @@
 
       <!-- Atividades -->
       <section data-view="atividades" hidden>
-        <div class="card agenda"><div class="ah"><div><div class="eyebrow mono">Todas as datas</div><h2>Atividades</h2></div><div class="ahr"><input id="q" class="aq" type="search" placeholder="Filtrar atividades…" aria-label="Filtrar atividades" autocomplete="off"><button class="btn sm" type="button" data-selm="all">Selecionar</button><select id="aF" class="asel" aria-label="Filtrar por prazo"><option value="">Todas</option><option value="late">Atrasadas</option><option value="due">Com prazo</option><option value="open">Em aberto</option></select></div></div><ul id="all"></ul></div>
+        <div class="card agenda"><div class="ah"><div><div class="eyebrow mono">Todas as datas</div><h2>Atividades</h2></div><div class="ahr"><input id="q" class="aq" type="search" placeholder="Filtrar atividades…" aria-label="Filtrar atividades" autocomplete="off"><button class="btn sm" type="button" data-selm="all">Selecionar</button><select id="aF" class="asel" aria-label="Filtrar por prazo"><option value="">Todas</option><option value="late">Atrasadas</option><option value="due">Com prazo</option><option value="open">Em aberto</option></select></div></div><ul id="all"></ul><div id="allEnd" aria-hidden="true"></div></div>
       </section>
 
       <!-- Foco -->
@@ -171,6 +171,12 @@
           <div class="upx"><h3 style="margin:0 0 4px;font-size:15px">Atualizar o sistema</h3>
             <p class="lead" style="margin:0 0 10px">Envie o arquivo .zip da nova versão. O sistema confere a versão, mostra o que muda e só então aplica. Seus dados, usuários, certificado e a configuração do iniciar.bat não são alterados. Antes de aplicar, ele faz backup do banco e guarda os arquivos da versão atual, para você poder voltar se algo der errado.</p>
             <div class="rf"><input type="file" id="upFile" accept=".zip"><button class="btn" id="upGo" type="button">Verificar pacote</button></div><div id="upRes" style="margin-top:12px"></div></div></div>
+        <div class="card panel" id="crtBox" style="margin-top:14px" hidden><h2 style="margin-top:0">Conexão segura (HTTPS)</h2>
+          <p class="lead" style="margin:0 0 10px">Para o navegador parar de mostrar “Não seguro”, instale a <b>autoridade do Suporte</b> uma vez em cada computador. Depois disso, as renovações do certificado continuam confiáveis sozinhas.</p>
+          <ol class="crtl"><li><b>Windows:</b> baixe e dê dois cliques em <a href="/confiar-certificado.bat" download>confiar-certificado-suporte.bat</a>. Confirme com <b>Sim</b> e reabra o navegador (Chrome, Edge e Firefox recentes).</li>
+          <li><b>Celular ou outro sistema:</b> baixe <a href="/certificado.crt" download>suporte-autoridade.crt</a> e instale em Configurações › Segurança › Certificados (“Certificado de CA”).</li>
+          <li><b>Muitos computadores:</b> distribua o mesmo arquivo .crt pela política de grupo (GPO) em “Autoridades de Certificação Raiz Confiáveis”.</li></ol>
+          <p class="lead" id="crtInfo" style="margin:8px 0 0;font-size:13.5px"></p></div>
         <div class="card panel" style="margin-top:14px"><h2 style="margin-top:0">O que mudou em cada versão</h2><div id="sbLog"></div></div>
       </section>
 

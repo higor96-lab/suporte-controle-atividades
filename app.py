@@ -645,12 +645,76 @@ def ping():
     return jsonify(ok=True)
 
 
+def _arquivo_ca():
+    """A autoridade local (ca.pem) e o que os computadores instalam; sem ela, cai no certificado do servidor."""
+    for nome in ("ca.pem", "cert.pem"):
+        p = os.path.join(CERT_DIR, nome)
+        if os.path.exists(p):
+            return p
+    return None
+
+
 @app.get("/certificado.crt")
 def certificado_publico():
-    p = os.path.join(CERT_DIR, "cert.pem")
-    if not os.path.exists(p):
+    p = _arquivo_ca()
+    if not p:
         abort(404)
-    return send_file(p, as_attachment=True, download_name="suporte.crt", mimetype="application/x-x509-ca-cert")
+    return send_file(p, as_attachment=True, download_name="suporte-autoridade.crt", mimetype="application/x-x509-ca-cert")
+
+
+@app.get("/confiar-certificado.bat")
+def confiar_certificado_bat():
+    """Instalador para Windows com a autoridade local embutida: um clique duplo e o navegador para de avisar."""
+    p = _arquivo_ca()
+    if not p:
+        abort(404)
+    pem = [l.strip() for l in open(p, encoding="ascii").read().splitlines() if l.strip()]
+    endereco = request.host
+    linhas = ["@echo off",  # sem chcp 65001: o arquivo e todo ASCII e o chcp faz o cmd parar no meio
+              "rem Instala a autoridade do Suporte (%s) como confiavel neste computador." % endereco,
+              "rem Assim o navegador abre https://%s sem o aviso de 'Nao seguro'." % endereco,
+              'set "ARQ=%TEMP%\\suporte-autoridade.crt"', '> "%ARQ%" (']
+    linhas += ["echo %s" % l for l in pem]
+    linhas += [")",
+               "net session >nul 2>nul",
+               "if errorlevel 1 (",
+               "  echo Instalando so para o seu usuario. O Windows vai pedir confirmacao: clique em Sim.",
+               '  certutil -user -addstore -f Root "%ARQ%" >nul',
+               ") else (",
+               "  echo Instalando para todos os usuarios deste computador...",
+               '  certutil -addstore -f Root "%ARQ%" >nul',
+               ")",
+               "if errorlevel 1 (echo. & echo Nao foi possivel instalar. & del \"%ARQ%\" & pause & exit /b 1)",
+               'del "%ARQ%"',
+               "echo.",
+               "echo Pronto! Feche TODAS as janelas do navegador e abra de novo: https://%s" % endereco,
+               "pause"]
+    corpo = "\r\n".join(linhas) + "\r\n"
+    r = app.response_class(corpo, mimetype="application/x-bat")
+    r.headers["Content-Disposition"] = 'attachment; filename="confiar-certificado-suporte.bat"'
+    return r
+
+
+@app.get("/api/certificado")
+@admin_required
+def info_certificado():
+    if not USAR_HTTPS:
+        return jsonify(https=False)
+    out = {"https": True}
+    try:
+        from cryptography import x509
+        for chave, nome in (("ca", "ca.pem"), ("servidor", "cert.pem")):
+            p = os.path.join(CERT_DIR, nome)
+            if os.path.exists(p):
+                c = x509.load_pem_x509_certificate(open(p, "rb").read())
+                try:
+                    fim = c.not_valid_after_utc
+                except AttributeError:
+                    fim = c.not_valid_after
+                out[chave] = {"ate": fim.strftime("%d/%m/%Y"), "nome": c.subject.rfc4514_string()}
+    except Exception as e:  # pragma: no cover
+        out["erro"] = str(e)
+    return jsonify(out)
 
 
 @app.post("/api/logout")
@@ -1545,7 +1609,8 @@ def main():
             app.config["SESSION_COOKIE_SECURE"] = True
             if novo:
                 print("\n  Certificado HTTPS criado em: %s" % CERT_DIR)
-                print("  Para tirar o aviso 'Nao seguro', instale o certificado (veja o README).\n")
+                print("  Para tirar o aviso 'Nao seguro', rode em cada computador o instalador:")
+                print("    https://<IP-do-servidor>:%s/confiar-certificado.bat  (ou instalar-certificado.bat aqui no servidor)\n" % PORT)
         except Exception as e:  # sem cryptography/cheroot: segue em HTTP
             print("\n  AVISO: HTTPS indisponivel (%s). Usando HTTP.\n  Rode iniciar.bat para instalar as dependencias.\n" % e)
 

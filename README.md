@@ -16,10 +16,14 @@ Sistema local (Flask + SQLite) com login, atividades por usuário, relatórios e
 
 ## HTTPS (conexão segura)
 
-O sistema gera sozinho um certificado próprio na pasta `certs/` (renovado automaticamente quando o IP muda ou perto de vencer). Como ele não é de uma autoridade pública, o navegador mostra "Não seguro" até você **instalar o certificado** como confiável:
+O sistema cria sozinho, na pasta `certs/`, uma **autoridade certificadora local** (`ca.pem`, válida por 10 anos) e, com ela, o certificado do servidor (`cert.pem`, renovado automaticamente quando o IP muda ou perto de vencer). Instale a **autoridade** uma única vez em cada computador; as renovações seguintes continuam confiáveis, sem o aviso "Não seguro":
 
-- **No computador do servidor:** clique com o botão direito em `instalar-certificado.bat` > Executar como administrador. Depois feche e abra o navegador.
-- **Nos outros computadores:** abra `https://IP-DO-SERVIDOR:5000/certificado.crt` (aceite o aviso uma vez), salve o arquivo e, como administrador, rode `certutil -addstore -f ROOT suporte.crt`.
+- **Nos computadores da rede (Windows):** abra `https://IP-DO-SERVIDOR:5000/confiar-certificado.bat`, execute o arquivo baixado e confirme com **Sim**. Feche e abra o navegador (Chrome, Edge e Firefox recentes usam o repositório do Windows). Os links também ficam em **Administração › Sobre e atualização**.
+- **No computador do servidor:** botão direito em `instalar-certificado.bat` › Executar como administrador.
+- **Muitos computadores:** distribua `https://IP-DO-SERVIDOR:5000/certificado.crt` por GPO em "Autoridades de Certificação Raiz Confiáveis".
+- **Celular:** baixe `https://IP-DO-SERVIDOR:5000/certificado.crt` e instale como "Certificado de CA".
+
+Ao atualizar de uma versão anterior à 3.8, o certificado antigo (autoassinado) é trocado uma vez pelo novo, assinado pela autoridade: instale a autoridade nos computadores nesse momento. A chave da autoridade (`certs/ca-key.pem`) fica só no servidor e nunca vai para o Git.
 
 A conexão já é criptografada mesmo sem instalar; a instalação só remove o aviso. Para voltar ao HTTP simples, coloque `set HTTPS=0` no `config.bat`.
 

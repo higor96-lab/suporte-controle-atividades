@@ -1,10 +1,9 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-rem Instala o certificado do Suporte como confiavel NESTE computador, para o
+rem Instala a autoridade do Suporte (certs\ca.pem) como confiavel NESTE computador, para o
 rem navegador parar de mostrar "Nao seguro". Execute como ADMINISTRADOR.
-rem Nos outros PCs: abra https://IP:PORTA/certificado.crt, baixe o arquivo e rode:
-rem    certutil -addstore -f ROOT suporte.crt   (como administrador)
+rem Nos outros PCs: abra https://IP:PORTA/confiar-certificado.bat e execute o arquivo baixado.
 
 net session >nul 2>nul
 if errorlevel 1 (
@@ -12,12 +11,14 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-if not exist "certs\cert.pem" (
-  echo Certificado ainda nao existe. Abra o iniciar.bat uma vez e tente de novo.
+set "ARQ=certs\ca.pem"
+if not exist "%ARQ%" set "ARQ=certs\cert.pem"
+if not exist "%ARQ%" (
+  echo Certificado ainda nao existe. Abra o iniciar.bat ^(ou reinicie o servico^) uma vez e tente de novo.
   pause
   exit /b 1
 )
-certutil -addstore -f ROOT "certs\cert.pem"
+certutil -addstore -f ROOT "%ARQ%"
 echo.
 echo Pronto. Feche e abra o navegador para valer.
 pause

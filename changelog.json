@@ -1,4 +1,13 @@
 [
+  {"versao": "3.8.0", "data": "2026-11-16", "titulo": "Certificado confiável e lista mais leve",
+   "itens": [
+     "HTTPS com autoridade certificadora local: instale uma vez por computador (Administração › Sobre › “confiar-certificado-suporte.bat”) e o aviso “Não seguro” some de vez, inclusive nas renovações automáticas do certificado.",
+     "Novo instalador para Windows com um clique (/confiar-certificado.bat) e certificado para celular/GPO (/certificado.crt).",
+     "Manutenção automática confere também a validade da autoridade local.",
+     "Atividades: a lista carrega 60 por vez e traz mais sozinha ao rolar (ou no botão “Mostrar mais”).",
+     "Linhas: o selo “ATRASADA” não se repete quando já há o aviso de prazo vencido; a barra lateral só aparece em atividades em andamento (azul) e atrasadas (vermelho).",
+     "Cabeçalho mais limpo: nome, cargo e data ficam no menu do avatar."
+   ]},
   {"versao": "3.7.0", "data": "2026-11-16", "titulo": "Limpeza visual",
    "itens": [
      "Hoje: topo mais limpo (data + menu ⋯ com Planejar e Encerrar o dia); cards de números neutros, sem zero à esquerda e com contexto (ex.: “de 3 programadas”).",

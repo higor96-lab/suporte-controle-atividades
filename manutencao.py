@@ -220,9 +220,21 @@ def r_certificado(db):
     except AttributeError:
         fim = c.not_valid_after.timestamp()
     dias = int((fim - time.time()) / DIA)
+    ca = ""
+    pca = os.path.join(C["cert_dir"], "ca.pem")
+    if os.path.exists(pca):
+        with open(pca, "rb") as f:
+            cc = x509.load_pem_x509_certificate(f.read())
+        try:
+            fca = cc.not_valid_after_utc.timestamp()
+        except AttributeError:
+            fca = cc.not_valid_after.timestamp()
+        ca = " Autoridade local válida até %s." % datetime.fromtimestamp(fca).strftime("%d/%m/%Y")
+    else:
+        ca = " Sem autoridade local: reinicie o serviço para criar (assim os computadores confiam de vez)."
     if dias < 30:
         return False, "O certificado HTTPS vence em %d dia(s). Rode reiniciar-servico.bat (ou reabra o iniciar.bat): o sistema gera um novo." % dias
-    return True, "Certificado HTTPS válido por mais %d dias (até %s)." % (dias, datetime.fromtimestamp(fim).strftime("%d/%m/%Y"))
+    return True, "Certificado HTTPS válido por mais %d dias (até %s).%s" % (dias, datetime.fromtimestamp(fim).strftime("%d/%m/%Y"), ca)
 
 
 def r_cronometro(db):
