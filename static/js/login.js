@@ -4,7 +4,8 @@
   var H={"Content-Type":"application/json","X-Requested-With":"fetch"};
   // logo da instituicao no fundo do login: so aparece se existir static/marca/logo.png (fica so no servidor)
   // e a imagem de fundo (static/marca/fundo.jpg); sem elas, fica o fundo padrao de rede de dados
-  (function(){var im=new Image();im.onload=function(){$("lMarcaImg").src=im.src;$("lMarca").hidden=false;$("login").classList.add("comlogo")};im.src="/static/marca/logo.png";
+  // (desligado a pedido: o login voltou ao fundo original em degrade, sem foto e sem logo. Os arquivos continuam em static/marca)
+  if(false)(function(){var im=new Image();im.onload=function(){$("lMarcaImg").src=im.src;$("lMarca").hidden=false;$("login").classList.add("comlogo")};im.src="/static/marca/logo.png";
     var fu=new Image();fu.onload=function(){$("login").classList.add("comfoto")};fu.src="/static/marca/fundo.jpg"})();
   // versao na tela: se o servidor ainda nao foi reiniciado depois da atualizacao, nao mostra o marcador cru
   Array.prototype.forEach.call(document.querySelectorAll(".verh,.lver"),function(e){if(/__VERSAO__/.test(e.textContent))e.hidden=true});

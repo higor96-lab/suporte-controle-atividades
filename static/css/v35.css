@@ -292,3 +292,6 @@ html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.a
 @media (max-width:860px){#login .lmarca{margin-bottom:10px}#login .lmarca img{width:220px}#login.comfoto .lfundo{background:rgba(4,12,30,.6)}}
 #login .lwrap{position:relative;z-index:1}
 #lf{backdrop-filter:blur(2px)}
+
+/* login no visual original: so o degrade, sem a rede de pontos */
+#login .lfundo{display:none}
