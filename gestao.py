@@ -184,7 +184,7 @@ def register(app, get_db, login_required, equipe_required, pode_equipe, tem_perm
             out["usuarios"] = [{"id": r["id"], "nome": r["nome"],
                                 "diaria": (ov.get(r["id"]) or (None, None))[0],
                                 "semanal": (ov.get(r["id"]) or (None, None))[1]}
-                               for r in db.execute("SELECT id, nome FROM usuarios ORDER BY nome")]
+                               for r in db.execute("SELECT id, nome FROM usuarios WHERE ativo=1 ORDER BY nome")]
         return jsonify(out)
 
     @app.put("/api/metas")

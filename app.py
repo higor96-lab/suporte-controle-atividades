@@ -222,6 +222,8 @@ def init_db():
             con.execute("ALTER TABLE usuarios ADD COLUMN %s %s" % (nome, defn))
     if "permissoes" not in ucols:
         con.execute("ALTER TABLE usuarios ADD COLUMN permissoes TEXT NOT NULL DEFAULT ''")
+    if "ativo" not in ucols:  # conta desativada: nao entra, mas o historico e as atividades ficam
+        con.execute("ALTER TABLE usuarios ADD COLUMN ativo INTEGER NOT NULL DEFAULT 1")
     extras.init_db(con)
     manutencao.init_db(con)
     cols = [r["name"] for r in con.execute("PRAGMA table_info(atividades)")]
@@ -506,7 +508,7 @@ def usuario_json(r):
             "perfil": r["perfil"], "equipe": "ver_equipe" in perms_de(r), "perms": perms_de(r),
             "perms_padrao": not r["permissoes"], "sessao_min": SESSAO_MIN,
             "trocar": bool(r["trocar_senha"]), "totp": bool(r["totp_ativo"]),
-            "bloqueada": int(r["bloq_ate"] or 0) > time.time()}
+            "bloqueada": int(r["bloq_ate"] or 0) > time.time(), "ativo": bool(r["ativo"])}
 
 
 @app.get("/api/me")
@@ -573,6 +575,9 @@ def msg_bloqueio(seg):
     return "Conta bloqueada por excesso de tentativas. Tente novamente em %d min ou peça ao administrador para desbloquear." % max(1, -(-seg // 60))
 
 
+MSG_DESATIVADA = "Esta conta está desativada. Fale com o administrador."
+
+
 @app.post("/api/login")
 def login():
     ip = request.remote_addr or "?"
@@ -594,6 +599,9 @@ def login():
             return jsonify(erro=msg_bloqueio(seguranca.BLOQ_MIN * 60)), 423
         return jsonify(erro="Usuário ou senha inválidos."), 401
     FALHAS.pop(ip, None)
+    if not r["ativo"]:
+        registra_acesso(db, r["id"], nome + " (conta desativada)", False)
+        return jsonify(erro=MSG_DESATIVADA), 403
     if r["totp_ativo"]:
         session.clear()
         session["pre2fa"] = r["id"]
@@ -615,6 +623,9 @@ def login_2fa():
     if not r or not r["totp_ativo"]:
         session.clear()
         return jsonify(erro="Entre novamente.", reinicia=True), 401
+    if not r["ativo"]:
+        session.clear()
+        return jsonify(erro=MSG_DESATIVADA, reinicia=True), 403
     if seguranca.bloqueio_restante(r):
         return jsonify(erro=msg_bloqueio(seguranca.bloqueio_restante(r)), reinicia=True), 423
     d = request.get_json(silent=True) or {}
@@ -839,7 +850,7 @@ def alterar_atividades():
 @app.get("/api/delegar/pessoas")
 @login_required
 def pessoas_delegar():
-    rows = get_db().execute("SELECT id, nome, cargo FROM usuarios WHERE id!=? ORDER BY nome", (session["uid"],)).fetchall()
+    rows = get_db().execute("SELECT id, nome, cargo FROM usuarios WHERE id!=? AND ativo=1 ORDER BY nome", (session["uid"],)).fetchall()
     return jsonify([{"id": r["id"], "nome": r["nome"], "cargo": r["cargo"]} for r in rows])
 
 
@@ -857,9 +868,9 @@ def delegar():
     db, eu = get_db(), session["uid"]
     if para == eu:
         return jsonify(erro="Escolha outra pessoa."), 400
-    dest = db.execute("SELECT id, nome FROM usuarios WHERE id=?", (para,)).fetchone()
+    dest = db.execute("SELECT id, nome FROM usuarios WHERE id=? AND ativo=1", (para,)).fetchone()
     if not dest:
-        return jsonify(erro="Pessoa não encontrada."), 404
+        return jsonify(erro="Pessoa não encontrada ou desativada."), 404
     a = db.execute("SELECT titulo FROM atividades WHERE user_id=? AND id=?", (eu, aid)).fetchone()
     if not a:
         return jsonify(erro="Atividade não encontrada (atualize a página)."), 404
@@ -1031,7 +1042,7 @@ def painel():
         if late:
             atrasadas[a["user_id"]] = atrasadas.get(a["user_id"], 0) + 1
     out = []
-    for u in db.execute("SELECT id, nome, cargo, foco_ate, foco_txt FROM usuarios ORDER BY nome"):
+    for u in db.execute("SELECT id, nome, cargo, foco_ate, foco_txt FROM usuarios WHERE ativo=1 ORDER BY nome"):
         it = por.get(u["id"], [])
         md, ms = gestao.efetiva(pd, ps, ov.get(u["id"]))
         out.append({"id": u["id"], "nome": u["nome"], "cargo": u["cargo"], "total": len(it),
@@ -1090,7 +1101,7 @@ def editar_usuario(uid):
         return jsonify(erro=str(e)), 400
     if not alvo:
         return jsonify(erro="Usuário não encontrado."), 404
-    if alvo["admin"] and not admin and db.execute("SELECT COUNT(*) FROM usuarios WHERE admin=1").fetchone()[0] <= 1:
+    if alvo["admin"] and not admin and db.execute("SELECT COUNT(*) FROM usuarios WHERE admin=1 AND ativo=1").fetchone()[0] <= 1:
         return jsonify(erro="Precisa existir ao menos um administrador."), 400
     with db:
         db.execute("UPDATE usuarios SET nome=?, cargo=?, admin=?, perfil=?, permissoes=? WHERE id=?",
@@ -1126,6 +1137,36 @@ def redefinir_senha(uid):
         n = seguranca.encerra_sessoes_usuario(db, uid, session.get("sid") if uid == session["uid"] else None)
         gestao.log(db, ator(), "usuario", "alterou", uid, alvo["nome"],
                    "Senha redefinida (provisória); %d sessão(ões) encerrada(s)" % n)
+    return jsonify(ok=True, sessoes_encerradas=n)
+
+
+@app.post("/api/usuarios/<int:uid>/ativo")
+@admin_required
+def ativar_usuario(uid):
+    """Desativa ou reativa a conta: {"ativo": false|true}. Desativada, a pessoa nao entra mais,
+    as sessoes abertas caem e os pedidos de delegacao para ela sao cancelados; atividades e historico ficam."""
+    ativo = bool((request.get_json(silent=True) or {}).get("ativo"))
+    db = get_db()
+    alvo = db.execute("SELECT nome, usuario, admin, ativo FROM usuarios WHERE id=?", (uid,)).fetchone()
+    if not alvo:
+        return jsonify(erro="Usuário não encontrado."), 404
+    if not ativo and uid == session["uid"]:
+        return jsonify(erro="Você não pode desativar o próprio usuário."), 400
+    if (not ativo and alvo["admin"] and alvo["ativo"]
+            and db.execute("SELECT COUNT(*) FROM usuarios WHERE admin=1 AND ativo=1").fetchone()[0] <= 1):
+        return jsonify(erro="Precisa existir ao menos um administrador ativo."), 400
+    if bool(alvo["ativo"]) == ativo:
+        return jsonify(ok=True, sessoes_encerradas=0)
+    n = 0
+    with db:
+        db.execute("UPDATE usuarios SET ativo=? WHERE id=?", (1 if ativo else 0, uid))
+        if not ativo:
+            n = seguranca.encerra_sessoes_usuario(db, uid)
+            ATIVOS.pop(uid, None)
+            db.execute("UPDATE delegacoes SET status='cancelada', respondido=? WHERE para_uid=? AND status='pendente'",
+                       (int(time.time()), uid))
+        gestao.log(db, ator(), "usuario", "alterou", uid, alvo["nome"],
+                   "Conta reativada" if ativo else "Conta desativada; %d sessão(ões) encerrada(s)" % n)
     return jsonify(ok=True, sessoes_encerradas=n)
 
 

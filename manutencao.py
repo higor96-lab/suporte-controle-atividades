@@ -241,7 +241,7 @@ def r_cronometro(db):
 
 def r_contas_paradas(db):
     rows = db.execute(
-        "SELECT u.nome, u.criado_em, (SELECT MAX(quando) FROM acessos a WHERE a.user_id=u.id AND a.ok=1) AS ult FROM usuarios u ORDER BY u.nome").fetchall()
+        "SELECT u.nome, u.criado_em, (SELECT MAX(quando) FROM acessos a WHERE a.user_id=u.id AND a.ok=1) AS ult FROM usuarios u WHERE u.ativo=1 ORDER BY u.nome").fetchall()
     lim = datetime.now().timestamp() - CONTA_PARADA_DIAS * DIA
     paradas = []
     for r in rows:

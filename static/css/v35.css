@@ -295,3 +295,7 @@ html[lang="en"] li.row.atr .tt::after{content:"overdue"}html[lang="es"] li.row.a
 
 /* login no visual original: so o degrade, sem a rede de pontos */
 #login .lfundo{display:none}
+
+/* ---------- usuario desativado ---------- */
+.bdg.off{background:var(--soft);color:var(--muted);border:1px dashed var(--line)}
+.ur:has(.bdg.off) .av,.ur:has(.bdg.off) .un b{opacity:.55}

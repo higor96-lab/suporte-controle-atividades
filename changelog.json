@@ -1,4 +1,10 @@
 [
+  {"versao": "3.6.1", "data": "2026-11-16", "titulo": "Desativar usuário",
+   "itens": [
+     "Administração → Usuários: botão Desativar / Reativar. A conta desativada não entra mais e é desconectada na hora; atividades e histórico continuam guardados.",
+     "Contas desativadas saem da lista de delegar, do painel da equipe e das metas; pedidos de delegação pendentes para elas são cancelados.",
+     "Não é possível desativar a própria conta nem o último administrador ativo."
+   ]},
   {"versao": "3.6.0", "data": "2026-11-14", "titulo": "Manutenção automática",
    "itens": [
      "11 rotinas automáticas: verificação do banco, teste do último backup, otimização semanal, faxina mensal de registros antigos, anexos órfãos, logs antigos, espaço em disco, validade do certificado, cronômetros esquecidos, contas paradas e aviso de versão nova.",
