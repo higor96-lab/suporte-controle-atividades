@@ -40,10 +40,12 @@ function blkRender(){
   var prox=pend.filter(function(i){return !ids[i.id]});
   var atr=itens().filter(function(i){return S.lateOf(i)&&i.date!==d&&!ids[i.id]}).sort(function(a,b){return (a.date+(a.time||"")).localeCompare(b.date+(b.time||""))});
   function bloco(cls,tit,sub,l,vazio,showDate){
+    if(!l.length)return '<section class="bk bk-vz '+cls+'"><header><h3>'+tit+'</h3><small>'+vazio+'</small></header></section>';
     return '<section class="bk '+cls+'"><header><h3>'+tit+'</h3><span class="bkn">'+l.length+'</span><small>'+sub+'</small></header>'+
-      (l.length?'<ul>'+l.map(function(i){return S.row(i,showDate)}).join("")+'</ul>':'<p class="bkv">'+vazio+'</p>')+'</section>'}
-  box.innerHTML=bloco("bk-agora","Agora",d===h?"em andamento ou no horário":"em andamento",agora,"Nada em andamento. Clique em ▶ Iniciar numa atividade.")+
-    bloco("bk-prox",d===h?"Próximas":"Programadas",d===h?"ainda hoje":"para "+nomeDia(d),prox,d===h?"Nada mais programado para hoje. 🎉":"Nada programado.")+
+      '<ul>'+l.map(function(i){return S.row(i,showDate)}).join("")+'</ul></section>'}
+  box.innerHTML=(!agora.length&&!prox.length?'<section class="bk bk-vz"><header><h3>'+(d===h?"Hoje":nomeDia(d))+'</h3><small>'+(di.length?"Tudo concluído neste dia. 🎉":"Nada em andamento nem programado"+(d===h?" para hoje.":"."))+'</small></header></section>':
+    bloco("bk-agora","Agora",d===h?"em andamento ou no horário":"em andamento",agora,"nada em andamento — use ▶ Iniciar numa atividade")+
+    bloco("bk-prox",d===h?"Próximas":"Programadas",d===h?"ainda hoje":"para "+nomeDia(d),prox,d===h?"nada mais programado para hoje":"nada programado"))+
     (atr.length?bloco("bk-atr","Atrasadas","de outros dias, em aberto",atr.slice(0,30),"",true):"")+
     (feitas.length?'<details class="bk bk-ok"><summary><h3>Concluídas</h3><span class="bkn">'+feitas.length+'</span></summary><ul>'+feitas.map(function(i){return S.row(i)}).join("")+'</ul></details>':"")}
 window.blkRender=blkRender;
@@ -188,7 +190,7 @@ if($("apLembMin")){$("apLembMin").value=lget("lembMin","10");$("apLembMin").addE
 var ACOES=[
   {id:"nova",t:"Nova atividade",k:"n",run:function(){S.openDlg(null)}},
   {id:"rapida",t:"Criação rápida (Hoje)",k:"q",run:function(){location.hash="#visao";setTimeout(function(){$("qa").focus()},60)}},
-  {id:"buscar",t:"Buscar atividade",k:"/",run:function(){document.body.classList.remove("nomenu");$("q").focus()}},
+  {id:"buscar",t:"Filtrar atividades",k:"/",run:function(){window.focaFiltro()}},
   {id:"cmd",t:"Buscar qualquer coisa (Ctrl+K)",k:"k",run:function(){$("cmdBtn").click()}},
   {id:"planejar",t:"Planejar o dia",k:"p",run:plAbrir},
   {id:"encerrar",t:"Resumo do fim do dia",k:"e",run:rsAbrir},

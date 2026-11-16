@@ -1,4 +1,13 @@
 [
+  {"versao": "3.7.0", "data": "2026-11-16", "titulo": "Limpeza visual",
+   "itens": [
+     "Hoje: topo mais limpo (data + menu ⋯ com Planejar e Encerrar o dia); cards de números neutros, sem zero à esquerda e com contexto (ex.: “de 3 programadas”).",
+     "“Concluído hoje” avisa quando há atrasadas de outros dias; o Próximo passo sugere a atrasada mais antiga quando o dia está em dia.",
+     "Resumo: blocos vazios viram uma linha só.",
+     "Atividades: lista agrupada por dia, linhas mais baixas, prioridade alta escrita (no lugar da bolinha), etiquetas mais legíveis e filtro de texto dentro da própria tela (tecla /).",
+     "Barra lateral sem itens repetidos (busca, atalhos e ritmo); versão do sistema discreta no rodapé.",
+     "Equipe: título e filtros numa faixa só, barra segmentada (concluídas, em andamento, pendentes) e correção da lista de atividades do card, que aparecia quebrada."
+   ]},
   {"versao": "3.6.1", "data": "2026-11-16", "titulo": "Desativar usuário",
    "itens": [
      "Administração → Usuários: botão Desativar / Reativar. A conta desativada não entra mais e é desconectada na hora; atividades e histórico continuam guardados.",

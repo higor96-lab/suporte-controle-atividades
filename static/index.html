@@ -69,7 +69,6 @@
       <a href="#historico" title="Histórico">↺</a>
     </nav>
     <div class="tp">
-      <input id="q" placeholder="Buscar atividade…" aria-label="Buscar atividade">
       <button class="btn dark navnew" type="button" data-act="new">＋ Nova atividade</button>
       <nav class="tree nav5" id="nav" aria-label="Seções">
         <a href="#visao" data-sec="hoje">Hoje<em id="bAtv" title="Atividades do dia">0</em></a>
@@ -78,7 +77,7 @@
         <a href="#equipe" data-sec="eq" id="gEq" hidden>Equipe</a>
         <a href="#usuarios" data-sec="adm" id="gAdm" hidden>Administração<em id="bSeg" hidden>0</em></a>
       </nav>
-      <div class="navq" aria-label="Atalhos rápidos">
+      <div class="navq" aria-label="Atalhos rápidos" hidden>
         <span>Atalhos</span>
         <a href="#atividades" id="lkLate">Atrasadas</a>
         <a href="#agenda">Calendário</a>
@@ -88,7 +87,8 @@
         <button type="button" id="exp">Exportar CSV</button>
       </div>
       <span hidden><em id="bHist">0</em><button id="apBtn" type="button">Aparência</button><button id="segBtn" type="button">Segurança da conta</button><button id="mobHelp" type="button">Usar no celular</button></span>
-      <div class="pace"><div class="row1"><span>Ritmo do dia</span><b id="sPct">0%</b></div><div class="bar"><span id="sBar" style="width:0"></span></div><small id="sTxt"></small><small id="sMeta" style="display:block;margin-top:4px"></small></div>
+      <small class="verh vside" title="Versão do sistema">Versão __VERSAO__</small>
+      <div class="pace" hidden><div class="row1"><span>Ritmo do dia</span><b id="sPct">0%</b></div><div class="bar"><span id="sBar" style="width:0"></span></div><small id="sTxt"></small><small id="sMeta" style="display:block;margin-top:4px"></small></div>
     </div>
     <div class="ct">
       <div class="tabbar"><span id="crumbW">Início › <b id="crumb">Visão geral</b></span><nav id="subtabs" class="subtabs" aria-label="Telas desta seção" hidden></nav><span id="runNow" hidden></span></div>
@@ -96,8 +96,8 @@
       <!-- Visão geral -->
       <section data-view="visao">
         <div class="hero">
-          <div><div class="date mono" id="dateLbl"></div><h1 id="hello"></h1><p>Vamos fechar o que move o sistema hoje.</p><small class="verh" title="Versão do sistema">Versão __VERSAO__</small></div>
-          <div class="ctl"><input type="date" id="day" aria-label="Data"><button class="btn" id="plBtn" type="button" title="Planejar o dia (P)">☀ Planejar o dia</button><button class="btn" id="rsBtn" type="button" title="Resumo do fim do dia (E)">☾ Encerrar o dia</button><button class="btn dark" id="new">＋ Nova atividade</button></div>
+          <div><div class="date mono" id="dateLbl"></div><h1 id="hello"></h1><p>Vamos fechar o que move o sistema hoje.</p></div>
+          <div class="ctl"><input type="date" id="day" aria-label="Data"><details class="menu hmenu"><summary class="btn" aria-label="Mais ações do dia" title="Mais ações do dia"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></summary><div><button id="plBtn" type="button" title="Planejar o dia (P)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M5 5l1.5 1.5M17.5 17.5L19 19M3 12h2M19 12h2M5 19l1.5-1.5M17.5 6.5L19 5"/><circle cx="12" cy="12" r="4"/></svg>Planejar o dia<kbd>P</kbd></button><button id="rsBtn" type="button" title="Resumo do fim do dia (E)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Encerrar o dia<kbd>E</kbd></button></div></details><button class="btn dark" id="new" type="button" hidden>＋ Nova atividade</button></div>
         </div>
         <form class="qa" id="qaF" autocomplete="off"><span class="qai" aria-hidden="true">＋</span><input id="qa" aria-label="Criação rápida" placeholder="Crie digitando: reunião com financeiro amanhã 14h 30min #urgente @Maria" maxlength="300"><button class="btn sm dark" id="qaGo">Criar</button><div class="qap" id="qaPrev" aria-live="polite"></div></form>
         <div class="card pedidos" id="pedBox" hidden><div class="pedh"><span class="eyebrow mono">Pedidos de delegação</span><span class="bkn" id="pedN">0</span></div><ul id="pedL" class="pedl"></ul></div>
@@ -129,7 +129,7 @@
 
       <!-- Atividades -->
       <section data-view="atividades" hidden>
-        <div class="card agenda"><div class="ah"><div><div class="eyebrow mono">Todas as datas</div><h2>Atividades</h2></div><div class="ahr"><button class="btn sm" type="button" data-selm="all">Selecionar</button><select id="aF" aria-label="Filtrar por prazo"><option value="">Todas</option><option value="late">Atrasadas</option><option value="due">Com prazo</option><option value="open">Em aberto</option></select></div></div><ul id="all"></ul></div>
+        <div class="card agenda"><div class="ah"><div><div class="eyebrow mono">Todas as datas</div><h2>Atividades</h2></div><div class="ahr"><input id="q" class="aq" type="search" placeholder="Filtrar atividades…" aria-label="Filtrar atividades" autocomplete="off"><button class="btn sm" type="button" data-selm="all">Selecionar</button><select id="aF" class="asel" aria-label="Filtrar por prazo"><option value="">Todas</option><option value="late">Atrasadas</option><option value="due">Com prazo</option><option value="open">Em aberto</option></select></div></div><ul id="all"></ul></div>
       </section>
 
       <!-- Foco -->
@@ -269,14 +269,9 @@
         <p><button class="btn" id="hMais" type="button" hidden>Carregar mais</button></p>
       </section>
       <section data-view="equipe" hidden>
-        <div class="card panel"><div class="rf">
-          <div><label for="pDia">Dia</label><input type="date" id="pDia"></div>
-          <button class="btn" id="pHoje" type="button">Hoje</button><button class="btn" id="pMetas" type="button">Definir metas</button>
-          <div class="sp"></div><span class="lead" id="pInfo" style="margin:0"></span>
-        </div></div>
-        <div class="eyebrow mono" style="margin-top:16px">Suporte - Controle de Atividades</div>
-        <h2 style="font-weight:300;font-size:26px;margin:4px 0">Painel da equipe</h2>
-        <p class="lead" id="pRes"></p>
+        <div class="eqh"><div><h2>Painel da equipe</h2><p class="lead" id="pRes"></p></div>
+          <div class="rf"><input type="date" id="pDia" aria-label="Dia"><button class="btn" id="pHoje" type="button">Hoje</button><button class="btn" id="pMetas" type="button">Definir metas</button></div></div>
+        <p class="eqinfo" id="pInfo"></p>
         <div class="pg" id="pGrid"></div>
       </section>
       <section data-view="lixeira" hidden>
